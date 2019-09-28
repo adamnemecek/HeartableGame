@@ -1,3 +1,3 @@
 # HeartableGame
 
-A description of this package.
+Utils for game development.

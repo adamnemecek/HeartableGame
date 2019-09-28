@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Heartable",
+        "repositoryURL": "https://github.com/heartable/Heartable.git",
+        "state": {
+          "branch": null,
+          "revision": "9f213de68f7fbd98d6b207efcc9a74b7e960b186",
+          "version": "0.0.8"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
