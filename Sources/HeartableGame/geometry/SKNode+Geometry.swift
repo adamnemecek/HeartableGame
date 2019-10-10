@@ -54,6 +54,7 @@ public extension SKNode {
     /// - Returns: The position as described, or nil if not calculable.
     static func position(
         of node: SKNode,
+        withSubtree: Bool = true,
         nodeAnchor: HRT2DPositionAnchor,
         guide: SKNode? = nil,
         guideAnchor: HRT2DPositionAnchor,
@@ -67,7 +68,7 @@ public extension SKNode {
         )
         else { return nil }
 
-        let nodeFrame = node.calculateAccumulatedFrame()
+        let nodeFrame = withSubtree ? node.calculateAccumulatedFrame() : node.frame
 
         // Find the minimum point of `node` in its parent's coorindate space.
         let nodeMin = CGPoint(x: nodeFrame.minX, y: nodeFrame.minY)
@@ -90,11 +91,13 @@ public extension SKNode {
     ///
     /// - Parameters:
     ///     - nodeAnchor: The anchor on `node` to align with. If nil, uses the inherent `anchorPoint`, if any.
+    ///     - withSubtree: True if `node`'s frame is accumulated.
     ///     - guideAnchor: The anchor on `guide` to align to.
     ///     - guide: The target node. If nil, defaults to this node's parent.
     ///     - constants: Offsets to apply to the position.
     func align(
         _ nodeAnchor: HRT2DPositionAnchor? = nil,
+        collectively withSubtree: Bool = true,
         to guideAnchor: HRT2DPositionAnchor,
         of guide: SKNode? = nil,
         constants: CGPoint = .zero
@@ -103,6 +106,7 @@ public extension SKNode {
         if let nodeAnchor = nodeAnchor {
             position = SKNode.position(
                 of: self,
+                withSubtree: withSubtree,
                 nodeAnchor: nodeAnchor,
                 guide: guide,
                 guideAnchor: guideAnchor,

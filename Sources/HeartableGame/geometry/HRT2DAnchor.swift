@@ -13,6 +13,8 @@ public enum HRT2DPositionAnchor {
     case left
     case topLeft
 
+    // MARK: - Props
+
     public var unitPoint: CGPoint {
         switch self {
         case .center: return CGPoint(x: 0.5, y: 0.5)
@@ -69,6 +71,8 @@ public enum HRT2DPositionAnchor {
         }
     }
 
+    // MARK: - Functionality
+
     public func unitDistance(from dest: HRT2DPositionAnchor) -> CGPoint {
         let x: CGFloat
         let y: CGFloat
@@ -117,4 +121,17 @@ public enum HRT2DPositionAnchor {
 
         return CGPoint(x: x, y: y)
     }
+
+    // MARK: Position
+
+    public func position(in area: CGSize) -> CGPoint {
+        let unitPoint = self.unitPoint
+        return CGPoint(x: area.width * unitPoint.x, y: area.height * unitPoint.y)
+    }
+
+    public func position(in rect: CGRect) -> CGPoint {
+        let normalizedPosition = position(in: rect.size)
+        return CGPoint(x: rect.minX + normalizedPosition.x, y: rect.minY + normalizedPosition.y)
+    }
+
 }

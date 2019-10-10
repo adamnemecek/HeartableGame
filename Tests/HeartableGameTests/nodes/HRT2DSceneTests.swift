@@ -1,9 +1,9 @@
 // Copyright © 2019 Heartable LLC. All rights reserved.
 
-import XCTest
-@testable import HeartableGame
 import Heartable
+@testable import HeartableGame
 import SpriteKit
+import XCTest
 
 @available(macOS 10.12, iOS 10.0, *)
 final class HRT2DSceneTests: XCTestCase {

@@ -3,8 +3,8 @@
 import GameplayKit
 
 @available(iOS 10.0, macOS 10.11, *)
-public protocol HRTGameplayBased {
+open class HRTGameEntity: GKEntity {
 
-    var entities: Set<GKEntity> { get set }
+    weak var scene: HRT2DScene?
 
 }

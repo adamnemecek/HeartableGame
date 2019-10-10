@@ -1,9 +1,9 @@
 // Copyright © 2019 Heartable LLC. All rights reserved.
 
-import XCTest
-@testable import HeartableGame
 import Heartable
+@testable import HeartableGame
 import SpriteKit
+import XCTest
 
 final class SKNode_GeometryTests: XCTestCase {
 
