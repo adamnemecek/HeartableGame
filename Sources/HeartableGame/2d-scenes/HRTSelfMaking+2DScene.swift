@@ -12,7 +12,6 @@ public extension HRTSelfMaking where Self: SKScene & HRTTypeSized {
     }
 }
 
-@available(macOS 10.12, iOS 10.0, *)
 public extension HRTSelfMaking where Self: SKScene & HRTFileBased {
     static func make() -> Self {
         let sceneContainer = GKScene(fileNamed: fileName)!
@@ -22,7 +21,6 @@ public extension HRTSelfMaking where Self: SKScene & HRTFileBased {
     }
 }
 
-@available(macOS 10.12, iOS 10.0, *)
 public extension HRTSelfMaking where Self: SKScene & HRTFileBased & HRTGameplayBased {
     static func make() -> Self {
         let sceneContainer = GKScene(fileNamed: fileName)!

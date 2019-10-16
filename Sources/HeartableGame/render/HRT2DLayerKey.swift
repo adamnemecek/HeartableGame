@@ -2,7 +2,6 @@
 
 import CoreGraphics
 
-@available(iOS 10.0, *)
 public protocol HRT2DLayerKey: CaseIterable, Hashable {
 
     static var pathPrefix: String { get }
@@ -17,7 +16,6 @@ public protocol HRT2DLayerKey: CaseIterable, Hashable {
 
 }
 
-@available(iOS 10.0, *)
 public extension HRT2DLayerKey where Self: RawRepresentable, Self.RawValue == CGFloat {
 
     static var pathPrefix: String { return "" }

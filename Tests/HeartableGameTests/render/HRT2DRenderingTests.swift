@@ -6,8 +6,7 @@ import Heartable
 import SpriteKit
 import XCTest
 
-@available(iOS 10.0, macOS 10.11, *)
-final class RenderingTests: XCTestCase {
+final class HRT2DRenderingTests: XCTestCase {
 
     // MARK: - Prep
 
@@ -31,7 +30,7 @@ final class RenderingTests: XCTestCase {
 
         static let typeSize = CGSize(width: 1024, height: 1366)
 
-        @HRTLate var layers: HRTMap<RenderingTests.SceneA.LayerKey, SKNode>
+        @HRTLate var layers: HRTMap<LayerKey, SKNode>
     }
 
     // MARK: Entities

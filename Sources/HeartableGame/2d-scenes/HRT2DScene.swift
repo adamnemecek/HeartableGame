@@ -4,8 +4,17 @@ import GameplayKit
 import Heartable
 import SpriteKit
 
-@available(iOS 10.0, macOS 10.11, *)
-open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased {
+open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoading {
+
+    // MARK: - Type props
+
+    public class var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [] }
+
+    // MARK: - Type functionality
+
+    public class func loadAssets(completion: @escaping HRTBlock) {
+        load2DAssets { completion() }
+    }
 
     // MARK: - Props
 

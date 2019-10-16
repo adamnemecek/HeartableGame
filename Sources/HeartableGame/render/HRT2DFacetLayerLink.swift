@@ -2,7 +2,6 @@
 
 import SpriteKit
 
-@available(iOS 10.0, *)
 public protocol HRT2DFacetLayerLink {
 
     associatedtype Facet: Hashable

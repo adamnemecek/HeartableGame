@@ -2,7 +2,6 @@
 
 import SpriteKit
 
-@available(iOS 10.0, macOS 10.11, *)
 open class HRT2DRotationComponent<Direction>: HRTGameComponent where Direction: HRT2DDirection {
 
     // MARK: - Props

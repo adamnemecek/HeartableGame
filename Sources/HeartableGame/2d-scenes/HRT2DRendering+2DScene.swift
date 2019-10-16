@@ -3,7 +3,6 @@
 import Heartable
 import SpriteKit
 
-@available(iOS 10.0, macOS 10.11, *)
 public extension HRT2DRendering where Self: HRTSelfMaking, Self: HRTTypeSized {
 
     func loadLayers() {

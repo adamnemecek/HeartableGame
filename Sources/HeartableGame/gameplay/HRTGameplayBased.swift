@@ -2,7 +2,6 @@
 
 import GameplayKit
 
-@available(iOS 10.0, macOS 10.11, *)
 public protocol HRTGameplayBased {
 
     var entities: Set<GKEntity> { get set }

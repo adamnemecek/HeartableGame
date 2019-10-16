@@ -6,7 +6,6 @@ import SpriteKit
 /// Handles the animation aspect of an entity.
 ///
 /// - Important: Requires the entity to have a render component and a rotation component.
-@available(iOS 10.0, macOS 10.12, *)
 public class HRT2DAnimationComponent<Variant, Direction, Facet>: HRTGameComponent
 where Variant: HRT2DAnimationVariant, Direction: HRT2DDirection, Facet: HRT2DFacet
 {

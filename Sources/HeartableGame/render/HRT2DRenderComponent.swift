@@ -4,7 +4,6 @@ import GameplayKit
 import SpriteKit
 
 /// Vends a node for rendering.
-@available(iOS 10.0, macOS 10.12, *)
 open class HRT2DRenderComponent: HRTGameComponent, HRT2DNoded {
 
     // MARK: - Props
@@ -45,7 +44,6 @@ open class HRT2DRenderComponent: HRTGameComponent, HRT2DNoded {
 
 }
 
-@available(iOS 10.0, macOS 10.12, *)
 public extension HRT2DRenderComponent {
 
     var nodes: Set<SKNode> { Set<SKNode>([node]) }

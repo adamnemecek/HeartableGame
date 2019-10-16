@@ -2,7 +2,6 @@
 
 import SpriteKit
 
-@available(iOS 10.0, macOS 10.11, *)
 public protocol HRT2DRenderable: HRTGameEntity {
 
     associatedtype Facet: HRT2DFacet
@@ -19,7 +18,6 @@ public protocol HRT2DRenderable: HRTGameEntity {
 
 }
 
-@available(iOS 10.0, macOS 10.11, *)
 public extension HRT2DRenderable {
 
     var nodes: Set<SKNode> {

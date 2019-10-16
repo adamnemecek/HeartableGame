@@ -4,7 +4,6 @@ import GameplayKit
 import Heartable
 import SpriteKit
 
-@available(iOS 10.0, macOS 10.11, *)
 public protocol HRT2DRendering: HRT2DScene {
 
     // MARK: - Layer
@@ -79,7 +78,6 @@ public protocol HRT2DRendering: HRT2DScene {
 
 }
 
-@available(iOS 10.0, macOS 10.11, *)
 public extension HRT2DRendering {
 
     // MARK: - Layer impl

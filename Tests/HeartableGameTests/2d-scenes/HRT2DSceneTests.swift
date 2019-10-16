@@ -5,7 +5,6 @@ import Heartable
 import SpriteKit
 import XCTest
 
-@available(macOS 10.12, iOS 10.0, *)
 final class HRT2DSceneTests: XCTestCase {
 
     // MARK: - Prep

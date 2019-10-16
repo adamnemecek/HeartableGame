@@ -3,7 +3,6 @@
 import Heartable
 import SpriteKit
 
-@available(iOS 10.0, *)
 /// A node that is always positioned in the center of its parent, with the same size as its view
 /// scaled to aspect-fit its scene.
 open class HRT2DViewGuide: SKSpriteNode {
@@ -53,9 +52,7 @@ open class HRT2DViewGuide: SKSpriteNode {
         #if !os(macOS)
 
         // Adjust for safe area.
-        if #available(iOS 11, *),
-            insetsToSafeArea
-        {
+        if insetsToSafeArea {
             scaledRect = scaledRect.inset(by: view.safeAreaInsets)
         }
 

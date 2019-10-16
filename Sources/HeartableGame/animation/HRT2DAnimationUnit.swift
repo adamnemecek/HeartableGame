@@ -4,7 +4,6 @@ import Heartable
 import SpriteKit
 
 /// Holds info about a semantic grouping of animations.
-@available(iOS 10.0, *)
 public struct HRT2DAnimationUnit<Variant, Direction, Facet>
 where Variant: HRT2DAnimationVariant, Direction: HRT2DDirection, Facet: HRT2DFacet
 {
@@ -63,7 +62,6 @@ where Variant: HRT2DAnimationVariant, Direction: HRT2DDirection, Facet: HRT2DFac
 
 }
 
-@available(iOS 10.0, *)
 public extension HRT2DAnimationUnit {
 
     /// Seconds per frame.
