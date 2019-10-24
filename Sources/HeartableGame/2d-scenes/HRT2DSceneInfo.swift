@@ -1,15 +1,25 @@
 // Copyright © 2019 Heartable LLC. All rights reserved.
 
+import CoreGraphics
+import Foundation
+
 /// The metadata of an `HRT2DScene`.
 public struct HRT2DSceneInfo {
 
-    /// The base name (no file extensions) of any resource file associated with this scene.
+    /// This scene's identifier.
+    let sceneKey: String
+
+    /// The base name (no file extensions) of the associated scene file.
     let fileName: String
 
     /// The scene class to initiate from this metadata.
     let sceneType: HRT2DScene.Type
 
-    
+    /// If true, a progress scene is presented while this scene loads.
+    let sceneChange: Bool
+
+    /// If true, this scene is not automatically released from memory.
+    let longLived: Bool
 
 }
 
@@ -18,11 +28,11 @@ public struct HRT2DSceneInfo {
 extension HRT2DSceneInfo: Hashable {
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(fileName)
+        hasher.combine(sceneKey)
     }
 
     public static func == (lhs: HRT2DSceneInfo, rhs: HRT2DSceneInfo) -> Bool {
-        lhs.fileName == rhs.fileName
+        lhs.sceneKey == rhs.sceneKey
     }
 
 }

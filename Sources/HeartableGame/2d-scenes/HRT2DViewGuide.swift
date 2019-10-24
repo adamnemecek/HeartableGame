@@ -4,12 +4,12 @@ import Heartable
 import SpriteKit
 
 /// A node that is always positioned in the center of its parent, with the same size as its view
-/// scaled to aspect-fit its scene.
+/// scaled to aspect-fit its scene (so that the scene aspect-fills the view).
 open class HRT2DViewGuide: SKSpriteNode {
 
     // MARK: - Props
 
-    // MARK: Settings
+    // MARK: Config
 
     /// Custom insets. Safe-area-sensitive.
     public var margins: HRTInsets = .zero {
@@ -33,7 +33,11 @@ open class HRT2DViewGuide: SKSpriteNode {
 
     private var _frame: CGRect = .zero
 
-    // MARK: - Layout
+}
+
+// MARK: - HRTLayoutCapable conformance
+
+extension HRT2DViewGuide: HRTLayoutCapable {
 
     public func layout() {
         guard let parent = parent,
@@ -42,12 +46,12 @@ open class HRT2DViewGuide: SKSpriteNode {
         else { return }
 
         // Find the view size in scene-scale.
-        let size = view.size(in: scene)
-        let halfWidth = size.width / 2
-        let halfHeight = size.height / 2
+        let viewSize = view.size(in: scene)
+        let halfWidth = viewSize.width / 2
+        let halfHeight = viewSize.height / 2
         let center = CGPoint(x: parent.frame.width / 2, y: parent.frame.height / 2)
         let minPoint = CGPoint(x: center.x - halfWidth, y: center.y - halfHeight)
-        var scaledRect = CGRect(origin: minPoint, size: size)
+        var scaledRect = CGRect(origin: minPoint, size: viewSize)
 
         #if !os(macOS)
 
@@ -61,6 +65,7 @@ open class HRT2DViewGuide: SKSpriteNode {
         // Adjust for margins.
         scaledRect = scaledRect.inset(by: margins)
 
+        size = scaledRect.size
         _frame = scaledRect
     }
 

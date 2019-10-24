@@ -5,7 +5,7 @@ import Heartable
 import SpriteKit
 import XCTest
 
-final class SKNode_GeometryTests: XCTestCase {
+final class SKNode_PositionTests: XCTestCase {
 
     // MARK: - Prep
 
@@ -35,9 +35,28 @@ final class SKNode_GeometryTests: XCTestCase {
 
     // MARK: - Tests
 
-    // MARK: Placement
+    // MARK: Basic
 
     func testNoRepositioning() {
+        let point = CGPoint(x: 100, y: 200)
+        XCTAssertEqual(node1.position, CGPoint.zero)
+
+        node1.align(to: point)
+        XCTAssertEqual(node1.position, CGPoint.zero)
+
+        node1.align(to: point, in: node0)
+        XCTAssertEqual(node1.position, CGPoint.zero)
+
+        node1.align(collectively: true, to: CGPoint(x: 100, y: 200), in: node0)
+        XCTAssertEqual(node1.position, CGPoint.zero)
+
+        node1.align(.bottom, to: point)
+        XCTAssertEqual(node1.position, CGPoint.zero)
+
+        node1.align(.bottom, to: point, in: node0)
+        XCTAssertEqual(node1.position, CGPoint.zero)
+
+        node1.align(.bottom, collectively: true, to: point, in: node0)
         XCTAssertEqual(node1.position, CGPoint.zero)
 
         node1.align(to: .top)
@@ -46,6 +65,63 @@ final class SKNode_GeometryTests: XCTestCase {
         node1.align(to: .top, of: node0)
         XCTAssertEqual(node1.position, CGPoint.zero)
     }
+
+    // MARK: Point alignment
+
+    func testPoint() {
+        let center = CGPoint(x: scene.frame.midX, y: scene.frame.midY)
+        let point = CGPoint(x: 25, y: 175)
+        let offset = CGPoint(x: 50, y: -25) // arbitrary offset
+
+        scene.addChild(node1)
+
+        // No local anchor
+        node1.align(to: point)
+        XCTAssertEqual(node1.position, point)
+        node1.align(to: point, constants: offset)
+        XCTAssertEqual(node1.position, point + offset)
+        node1.align(to: point, in: node0.parent)
+        XCTAssertEqual(node1.position, node0.position)
+        node1.align(to: point, in: node0.parent, constants: offset)
+        XCTAssertEqual(node1.position, node0.position + offset)
+
+        // With center local anchor
+        node1.align(.center, to: point)
+        XCTAssertEqual(node1.position, point)
+        node1.align(.center, to: point, constants: offset)
+        XCTAssertEqual(node1.position, point + offset)
+        node1.align(.center, to: point, in: node0.parent)
+        XCTAssertEqual(node1.position, node0.position)
+        node1.align(.center, to: point, in: node0.parent, constants: offset)
+        XCTAssertEqual(node1.position, node0.position + offset)
+
+        // With different anchors
+        node1.align(.bottom, to: center)
+        XCTAssertEqual(node1.position, center + CGPoint(x: 0, y: 50))
+        node1.align(.topLeft, to: center)
+        XCTAssertEqual(node1.position, center + CGPoint(x: 50, y: -50))
+
+        // With another anchor point
+        node1.anchorPoint = CGPoint.zero
+        node1.align(to: center)
+        XCTAssertEqual(node1.position, center)
+        node1.align(.topRight, to: center)
+        XCTAssertEqual(node1.position, center + CGPoint(x: -100, y: -100))
+
+        // With different parents
+        node0.addChild(node2)
+        node2.align(to: .zero, in: node0)
+        XCTAssertEqual(node2.position.x, 0, accuracy: 0.1)
+        XCTAssertEqual(node2.position.y, 0, accuracy: 0.1)
+        node2.align(to: center, in: scene)
+        XCTAssertEqual(node2.position.x, (center + CGPoint(x: -25, y: -175)).x, accuracy: 0.1)
+        XCTAssertEqual(node2.position.y, (center + CGPoint(x: -25, y: -175)).y, accuracy: 0.1)
+        node1.align(to: CGPoint(x: 0, y: 50), in: node2)
+        XCTAssertEqual(node1.position.x, (center + CGPoint(x: 0, y: 50)).x, accuracy: 0.1)
+        XCTAssertEqual(node1.position.y, (center + CGPoint(x: 0, y: 50)).y, accuracy: 0.1)
+    }
+
+    // MARK: Anchor alignment
 
     func testCenterPosition() {
         let center = CGPoint(x: scene.frame.midX, y: scene.frame.midY)

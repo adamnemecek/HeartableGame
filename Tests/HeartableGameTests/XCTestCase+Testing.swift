@@ -5,6 +5,10 @@ import XCTest
 
 public extension XCTestCase {
 
+    class func dsleep(_ seconds: Double) {
+        usleep(useconds_t(seconds * 1000000))
+    }
+
     func dsleep(_ seconds: Double) {
         usleep(useconds_t(seconds * 1000000))
     }

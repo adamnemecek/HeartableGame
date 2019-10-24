@@ -61,14 +61,26 @@ final class HRT2DSceneLoadingTests: XCTestCase {
         }
     }
 
-    static let sceneAInfo = HRT2DSceneInfo(fileName: "", sceneType: SceneA.self)
-    static let sceneBInfo = HRT2DSceneInfo(fileName: "", sceneType: SceneB.self)
-    static let sceneCInfo = HRT2DSceneInfo(fileName: "", sceneType: SceneC.self)
+    static let sceneAInfo = makeSceneInfo("A", sceneType: SceneA.self)
+    static let sceneBInfo = makeSceneInfo("B", sceneType: SceneB.self)
+    static let sceneCInfo = makeSceneInfo("C", sceneType: SceneC.self)
 
     // MARK: - Lifecycle
 
     override func setUp() {
         Self.allSceneTypes.forEach { $0.reset() }
+    }
+
+    // MARK: - Utils
+
+    static func makeSceneInfo(_ sceneKey: String, sceneType: HRT2DScene.Type) -> HRT2DSceneInfo {
+        HRT2DSceneInfo(
+            sceneKey: sceneKey,
+            fileName: "",
+            sceneType: sceneType,
+            sceneChange: true,
+            longLived: false
+        )
     }
 
     // MARK: - Tests

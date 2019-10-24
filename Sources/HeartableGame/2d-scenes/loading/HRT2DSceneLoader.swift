@@ -10,7 +10,7 @@ public class HRT2DSceneLoader {
     public weak var delegate: HRT2DSceneLoaderDelegate?
 
     /// Tracks the scene loader's state.
-    public private(set) lazy var stateMachine = GKStateMachine(states: [
+    private(set) lazy var stateMachine = GKStateMachine(states: [
         HRTLoad2DSceneInitial(governing: self),
         HRTLoad2DSceneReady(governing: self),
         HRTLoad2DSceneLoading(governing: self),
@@ -26,6 +26,8 @@ public class HRT2DSceneLoader {
     /// Progress tracking scene loading. If nil, indicates no loading is taking place.
     public internal(set) var progress: Progress?
 
+    // MARK: - State
+
     /// Set to true to raise loading priority, and false to lower.
     public var isRequested = false {
         didSet {
@@ -36,10 +38,10 @@ public class HRT2DSceneLoader {
     }
 
     /// True iff a progress scene should be presented while loading the scene.
-    public var needsProgressScene: Bool {
-        // TODO: Make progress scenes optional.
-        return true
-    }
+    public var needsProgressScene: Bool { info.sceneChange }
+
+    /// True iff the loader is in the finished state.
+    public var isFinished: Bool { stateMachine.currentState is HRTLoad2DSceneFinished }
 
     // MARK: - Init
 
@@ -48,8 +50,6 @@ public class HRT2DSceneLoader {
 
         stateMachine.enter(HRTLoad2DSceneInitial.self)
     }
-
-    // MARK: - Lifecycle
 
     // MARK: - Functionality
 
@@ -82,7 +82,7 @@ public class HRT2DSceneLoader {
         loadingState.cancel()
     }
 
-    /// Brings the loader back to its initial state.
+    /// Releases loaded resources and brings the loader back to its initial state.
     public func reset() {
         cancel()
         cleanUp()
@@ -90,12 +90,6 @@ public class HRT2DSceneLoader {
     }
 
     // MARK: - Utils
-
-    func fail() {
-        cleanUp()
-        stateMachine.enter(HRTLoad2DSceneReady.self)
-        postFailure()
-    }
 
     func postSuccess() {
         guard let scene = scene else { fatalError("Scene \(info.sceneType) failed to load.") }

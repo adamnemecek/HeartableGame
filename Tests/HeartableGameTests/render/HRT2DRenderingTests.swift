@@ -116,7 +116,11 @@ final class HRT2DRenderingTests: XCTestCase {
     func testNonRenderableEntity() throws {
         // Create entity
         let entity1 = EntityA()
+        #if !os(macOS)
         let component1 = try XCTUnwrap(entity1.components.first as? ComponentA)
+        #else
+        let component1 = entity1.components.first as! ComponentA
+        #endif
         XCTAssert(entity1.component(ofType: ComponentA.self) === entity1.components.first)
 
         // Add entity
@@ -134,7 +138,11 @@ final class HRT2DRenderingTests: XCTestCase {
     func testRenderableEntity() throws {
         // Create entity
         let entity1 = EntityB()
+        #if !os(macOS)
         let component1 = try XCTUnwrap(entity1.components.first as? ComponentB)
+        #else
+        let component1 = entity1.components.first as! ComponentB
+        #endif
         XCTAssertNotNil(component1.node)
         let info = try XCTUnwrap(entity1.componentInfo[ObjectIdentifier(ComponentB.self)])
         XCTAssert(info.facet == .dos)
@@ -266,7 +274,11 @@ final class HRT2DRenderingTests: XCTestCase {
     func testRenderableEntity_NodedComponent() throws {
         let entity1 = EntityB()
         scene1.intro(entity1, link: SceneA.LayerKey.EntityBLink.self)
+        #if !os(macOS)
         let component0 = try XCTUnwrap(scene1.componentSystem(ComponentB.self)?.components.first)
+        #else
+        let component0 = scene1.componentSystem(ComponentB.self)!.components.first!
+        #endif
 
         // Add same component type to entity directly
         let component1 = ComponentB()
@@ -320,7 +332,11 @@ final class HRT2DRenderingTests: XCTestCase {
         let link = SceneA.LayerKey.EntityBLink.self
         let entity1 = EntityB()
         scene1.intro(entity1, link: link)
+        #if !os(macOS)
         let component1 = try XCTUnwrap(entity1.components.first as? ComponentB)
+        #else
+        let component1 = entity1.components.first as! ComponentB
+        #endif
         XCTAssert(scene1.layers[.two].children.first === component1.node)
 
         // Add same-type component to a different facet
@@ -349,7 +365,11 @@ final class HRT2DRenderingTests: XCTestCase {
 
         // Add entity with added components
         let entity2 = EntityB()
+        #if !os(macOS)
         let component4 = try XCTUnwrap(entity2.components.first as? ComponentB)
+        #else
+        let component4 = entity2.components.first as! ComponentB
+        #endif
         let component5 = ComponentA()
         entity2.addComponent(component5)
         let component6 = ComponentD()
