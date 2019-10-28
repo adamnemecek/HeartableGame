@@ -10,6 +10,8 @@ final class HRT2DProgressNodeTests: XCTestCase {
 
     // MARK: - Prep
 
+    class Node: HRT2DProgressNode {}
+
     static let nodeSize = CGSize(width: 1000, height: 20)
     static let nodeOrigin: CGPoint = .zero
     static let fillNodeOrigin = CGPoint(x: -500, y: -10)
@@ -20,9 +22,9 @@ final class HRT2DProgressNodeTests: XCTestCase {
 
     override func setUp() {
         #if !os(macOS)
-        progressRep = HRT2DProgressNode(color: .red, size: Self.nodeSize)
+        progressRep = Node(color: .red, size: Self.nodeSize)
         #else
-        progressRep = HRT2DProgressNode(color: NSColor.red, size: Self.nodeSize)
+        progressRep = Node(color: NSColor.red, size: Self.nodeSize)
         #endif
     }
 
@@ -30,7 +32,10 @@ final class HRT2DProgressNodeTests: XCTestCase {
 
     func testSetup() {
         XCTAssertEqual(progressRep.frame, Self.nodeStartFrame)
-        XCTAssertEqual(node.fillNode.frame, Self.nodeStartFrame)
+        XCTAssertEqual(
+            node.fillNode.frame,
+            CGRect(origin: Self.fillNodeOrigin, size: CGSize(width: 0, height: 20))
+        )
 
         #if !os(macOS)
         XCTAssertEqual(node.color.cgColor.alpha, 0)
@@ -41,20 +46,32 @@ final class HRT2DProgressNodeTests: XCTestCase {
     }
 
     func testUpdateProgress() {
-        progressRep.updateProgress(0.5)
-        XCTAssertEqual(
-            node.fillNode.frame,
-            CGRect(origin: Self.fillNodeOrigin, size: CGSize(width: 500, height: 20))
-        )
+        let exp1 = expectation(description: "updated progress to 50%")
+        let exp2 = expectation(description: "updated progress to 100%")
+        let exp3 = expectation(description: "updated progress to 0%")
 
-        progressRep.updateProgress(1)
-        XCTAssertEqual(node.fillNode.frame, Self.nodeStartFrame)
+        progressRep.updateProgress(0.5, animated: false) {
+            XCTAssertEqual(
+                self.node.fillNode.frame,
+                CGRect(origin: Self.fillNodeOrigin, size: CGSize(width: 500, height: 20))
+            )
+            exp1.fulfill()
 
-        progressRep.updateProgress(0)
-        XCTAssertEqual(
-            node.fillNode.frame,
-            CGRect(origin: Self.fillNodeOrigin, size: CGSize(width: 0, height: 20))
-        )
+            self.progressRep.updateProgress(1, animated: false) {
+                XCTAssertEqual(self.node.fillNode.frame, Self.nodeStartFrame)
+                exp2.fulfill()
+
+                self.progressRep.updateProgress(0, animated: false) {
+                    XCTAssertEqual(
+                        self.node.fillNode.frame,
+                        CGRect(origin: Self.fillNodeOrigin, size: CGSize(width: 0, height: 20))
+                    )
+                    exp3.fulfill()
+                }
+            }
+        }
+
+        XCTWaiter.wait(for: [exp1, exp2, exp3], timeout: 3).process()
     }
 
 }

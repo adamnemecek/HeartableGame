@@ -6,6 +6,12 @@ import SpriteKit
 
 open class HRT2DProgressNode: SKSpriteNode {
 
+    // MARK: - Constants
+
+    open class var actionName: String { "progressionAction" }
+    open class var totalDuration: TimeInterval { 2 }
+    open class var actionTimingMode: SKActionTimingMode { .easeOut }
+
     // MARK: - Props
 
     @HRTLate open private(set) var fillNode: SKSpriteNode
@@ -47,6 +53,8 @@ open class HRT2DProgressNode: SKSpriteNode {
         fillNode.anchorPoint = CGPoint(x: 0, y: 0.5)
         fillNode.position = CGPoint(x: -size.width / 2, y: 0)
         addChild(fillNode)
+
+        resetProgress()
     }
 
 }
@@ -55,8 +63,32 @@ open class HRT2DProgressNode: SKSpriteNode {
 
 extension HRT2DProgressNode: HRT2DProgressRepresentable {
 
-    open func updateProgress(_ fractionCompleted: Double) {
-        fillNode.size.width = frame.width * CGFloat(fractionCompleted)
+    open var progressAction: SKAction? { fillNode.action(forKey: Self.actionName) }
+
+    open func resetProgress() {
+        fillNode.size = CGSize(width: 0, height: fillNode.size.height)
+    }
+
+    open func updateProgress(
+        _ fractionCompleted: Double,
+        animated: Bool = true,
+        completion: HRTBlock? = nil
+    ) {
+        let oldWidth = fillNode.frame.width
+        let newWidth = frame.width * CGFloat(fractionCompleted)
+
+        if animated {
+            let dw = abs(newWidth - oldWidth)
+            let dwFraction = dw / frame.width
+            let duration = Double(dwFraction) * Self.totalDuration
+            let action = SKAction.resize(toWidth: newWidth, duration: duration)
+            action.timingMode = Self.actionTimingMode
+            action.speed *= fractionCompleted == 1 ? 2 : 1
+            fillNode.run(.sequence([action, .run { completion?() }]), withKey: Self.actionName)
+        } else {
+            fillNode.size.width = newWidth
+            completion?()
+        }
     }
 
 }

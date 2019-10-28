@@ -10,9 +10,6 @@ public struct HRT2DSceneInfoDraft: Decodable {
     /// Name of the resource file containing this scene.
     var fileName: String
 
-    /// If true, a progress scene is presented while this scene loads.
-    var sceneChange: Bool?
-
     /// If true, this scene is not automatically released from memory.
     var longLived: Bool?
 
@@ -22,7 +19,6 @@ public struct HRT2DSceneInfoDraft: Decodable {
     private enum CodingKeys: String, CodingKey {
         case sceneKey
         case fileName
-        case sceneChange
         case longLived
         case nextSceneKeys = "next"
     }

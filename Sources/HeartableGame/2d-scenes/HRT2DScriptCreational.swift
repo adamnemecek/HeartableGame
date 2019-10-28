@@ -44,7 +44,6 @@ public extension HRT2DScriptCreational {
                 sceneKey: $0.sceneKey,
                 fileName: $0.fileName,
                 sceneType: Self(rawValue: $0.sceneKey)!.sceneType,
-                sceneChange: $0.sceneChange ?? true,
                 longLived: $0.longLived ?? false
             )
         ) }

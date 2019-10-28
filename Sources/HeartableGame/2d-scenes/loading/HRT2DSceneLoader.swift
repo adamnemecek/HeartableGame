@@ -38,7 +38,10 @@ public class HRT2DSceneLoader {
     }
 
     /// True iff a progress scene should be presented while loading the scene.
-    public var needsProgressScene: Bool { info.sceneChange }
+    public var needsProgressScene: Bool {
+        info.sceneType.shouldLoadAssets
+        && info.sceneType.assetsLoadingDependencies.contains { $0.shouldLoadAssets }
+    }
 
     /// True iff the loader is in the finished state.
     public var isFinished: Bool { stateMachine.currentState is HRTLoad2DSceneFinished }

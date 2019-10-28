@@ -15,9 +15,6 @@ public struct HRT2DSceneInfo {
     /// The scene class to initiate from this metadata.
     let sceneType: HRT2DScene.Type
 
-    /// If true, a progress scene is presented while this scene loads.
-    let sceneChange: Bool
-
     /// If true, this scene is not automatically released from memory.
     let longLived: Bool
 

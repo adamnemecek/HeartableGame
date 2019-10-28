@@ -41,15 +41,28 @@ open class HRT2DProgressScene: HRT2DScene, HRTFileBased, HRTSelfMaking {
 
     // MARK: - Functionality
 
+    open func wrapUp(_ completion: @escaping HRTBlock) {
+        if let progressAction = progressNode?.progressAction {
+            let duration = Double(progressAction.speed) * progressAction.duration
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) { completion() }
+        } else {
+            completion()
+        }
+    }
+
     open func reset() {
         targetSceneInfo = nil
-        progressNode?.updateProgress(0)
+        progressNode?.resetProgress()
         labelNode?.text = nil
     }
 
-    open func reportProgress(_ progress: Progress) {
-        progressNode?.updateProgress(progress.fractionCompleted)
+    open func reportProgress(_ progress: Progress, completion: HRTBlock? = nil) {
         labelNode?.text = progress.localizedDescription
+        progressNode?.updateProgress(
+            progress.fractionCompleted,
+            animated: true,
+            completion: completion
+        )
     }
 
     open func reportFailure() {}

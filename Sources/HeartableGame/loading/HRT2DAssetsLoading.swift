@@ -6,23 +6,33 @@ import SpriteKit
 public protocol HRT2DAssetsLoading: HRTAssetsLoading {
 
     /// Implementing this property opts into automatic texture loading.
-    static var loadableTextures: [SKTexture] { get }
+    static var textureNames: [String] { get }
 
     /// Implementing this property opts into automatic texture atlas loading.
-    static var loadableTextureAtlases: [SKTextureAtlas] { get }
+    static var textureAtlasNames: [String] { get }
 
 }
 
 public extension HRT2DAssetsLoading {
 
-    static var loadableTextures: [SKTexture] { [SKTexture]() }
+    static var textureNames: [String] { [] }
 
-    static var loadableTextureAtlases: [SKTextureAtlas] { [SKTextureAtlas]() }
+    static var textureAtlasNames: [String] { [] }
 
-    static func load2DAssets(completion: @escaping HRTBlock) {
-        SKTexture.preload(loadableTextures) {
-            SKTextureAtlas.preloadTextureAtlases(loadableTextureAtlases) {
-                completion()
+    static func load2DAssets(
+        completion: @escaping ([String: SKTexture], [String: SKTextureAtlas]) -> Void
+    ) {
+        let textures = Dictionary(textureNames.map { ($0, SKTexture(imageNamed: $0)) }) {
+            _, last in last
+        }
+
+        let textureAtlases = Dictionary(textureAtlasNames.map { ($0, SKTextureAtlas(named: $0)) }) {
+            _, last in last
+        }
+
+        SKTexture.preload(Array(textures.values)) {
+            SKTextureAtlas.preloadTextureAtlases(Array(textureAtlases.values)) {
+                completion(textures, textureAtlases)
             }
         }
     }

@@ -16,10 +16,10 @@ final public class HRT2DStage {
     /// The presenting view.
     public let view: SKView
 
-    /// The game control input.
+    /// Player control input.
     public let input: HRT2DGameInput
 
-    /// The content authority.
+    /// Content authority.
     public let script: HRT2DScript
 
     // MARK: Loading
@@ -70,6 +70,11 @@ final public class HRT2DStage {
 
     // MARK: - Functionality
 
+    public var nextScenes: Set<HRT2DSceneInfo> {
+        guard let curr = currSceneInfo else { return [script.openingScene] }
+        return script.scenes(after: curr)
+    }
+
     public func prepareNextScenes() {
         script.scenes(after: currSceneInfo ?? script.openingScene).forEach { prepareScene($0) }
     }
@@ -108,6 +113,7 @@ final public class HRT2DStage {
         }
 
         currSceneInfo = loader.info
+        scene.stage = self
 
         DispatchQueue.main.async {
             if let transition = transition ?? self.presentTransition {
@@ -115,8 +121,6 @@ final public class HRT2DStage {
             } else {
                 self.view.presentScene(scene)
             }
-
-            scene.stage = self
 
             // Release unneeded resources.
             self.progressObservation = nil
@@ -127,7 +131,9 @@ final public class HRT2DStage {
 
     func presentProgressScene(_ loader: HRT2DSceneLoader) {
         guard progressObservation == nil else { return }
+
         progressScene.reset()
+        progressScene.stage = self
         progressScene.targetSceneInfo = loader.info
 
         DispatchQueue.main.async {
@@ -143,7 +149,9 @@ final public class HRT2DStage {
                 \.fractionCompleted,
                 options: [.initial, .new]
             ) { progress, _ in
-                self.progressScene.reportProgress(progress)
+                DispatchQueue.main.async {
+                    self.progressScene.reportProgress(progress)
+                }
             }
         }
     }
@@ -160,8 +168,10 @@ extension HRT2DStage: HRT2DSceneLoaderDelegate {
 
     public func sceneLoaderDidLoad(_ sceneLoader: HRT2DSceneLoader, scene: HRT2DScene) {
         if sceneLoader.isRequested {
-            presentScene(sceneLoader)
-            sceneLoader.isRequested = false
+            progressScene.wrapUp {
+                self.presentScene(sceneLoader)
+                sceneLoader.isRequested = false
+            }
         }
     }
 

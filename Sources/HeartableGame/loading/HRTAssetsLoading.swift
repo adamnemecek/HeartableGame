@@ -5,7 +5,7 @@ import Heartable
 
 public protocol HRTAssetsLoading {
 
-    /// True iff assets should be loaded.
+    /// True iff assets should be loaded (i.e. false if assets are already loaded).
     static var shouldLoadAssets: Bool { get }
 
     /// Dependencies with assets to load.
@@ -25,8 +25,6 @@ public protocol HRTAssetsLoading {
 public extension HRTAssetsLoading {
 
     // MARK: - Impl
-
-    static var shouldLoadAssets: Bool { true }
 
     static func loadAssets(completion: @escaping HRTBlock) {
         completion()

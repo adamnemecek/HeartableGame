@@ -8,12 +8,14 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
 
     // MARK: - Type props
 
-    public class var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [] }
+    open class var shouldLoadAssets: Bool { true }
+
+    open class var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [] }
 
     // MARK: - Type functionality
 
-    public class func loadAssets(completion: @escaping HRTBlock) {
-        load2DAssets { completion() }
+    open class func loadAssets(completion: @escaping HRTBlock) {
+        load2DAssets { _, _ in completion() }
     }
 
     // MARK: - Props
@@ -24,10 +26,17 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
 
     open var overlay: HRT2DOverlay? {
         didSet {
-            if let overlay = overlay,
-                let camera = camera
-            {
-                overlay.attach(to: camera)
+            if let camera = camera {
+                overlay?.attach(to: camera)
+            }
+            oldValue?.detach()
+        }
+    }
+
+    open var curtain: HRT2DCurtain? {
+        didSet {
+            if let camera = camera {
+                curtain?.attach(to: camera)
             }
             oldValue?.detach()
         }
@@ -55,12 +64,12 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
 
     open override func didMove(to view: SKView) {
         super.didMove(to: view)
-        overlay?.rescale()
+        rescale()
     }
 
     open override func didChangeSize(_ oldSize: CGSize) {
         super.didChangeSize(oldSize)
-        overlay?.rescale()
+        rescale()
     }
 
     override open func update(_ currentTime: TimeInterval) {
@@ -79,11 +88,15 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
     // MARK: Entities
 
     open func addEntity(_ entity: GKEntity) {
+        guard !entities.contains(entity) else { return }
         entities.insert(entity)
         componentSystems.values.forEach { $0.addComponent(foundIn: entity) }
+        (entity as? HRTGameEntity)?.didMove(to: self)
     }
 
     open func removeEntity(_ entity: GKEntity) {
+        guard entities.contains(entity) else { return }
+        (entity as? HRTGameEntity)?.willMove(from: self)
         entities.remove(entity)
         componentSystems.values.forEach { $0.removeComponent(foundIn: entity) }
     }
@@ -97,15 +110,25 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
 
     open func addComponent(_ component: GKComponent, to entity: GKEntity) {
         let componentType = type(of: component)
+        guard entities.contains(entity) else { return }
+
         if let currComponent = entity.component(ofType: componentType) {
             removeComponent(currComponent, from: entity)
         }
+
         entity.addComponent(component)
         componentSystem(componentType)?.addComponent(component)
+        (component as? HRTGameComponent)?.didMove(to: self)
     }
 
     open func removeComponent(_ component: GKComponent, from entity: GKEntity) {
         let componentType = type(of: component)
+        guard entities.contains(entity),
+            let currComponent = entity.component(ofType: componentType),
+            currComponent === component
+        else { return }
+
+        (component as? HRTGameComponent)?.willMove(from: self)
         entity.removeComponent(ofType: componentType)
         componentSystem(componentType)?.removeComponent(component)
     }
@@ -123,13 +146,20 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
         camera?.position = point
     }
 
+    // MARK: - Utils
+
+    open func rescale() {
+        overlay?.rescale()
+        curtain?.rescale()
+    }
+
 }
 
 // MARK: - HRT2DGameInputDelegate conformance
 
 extension HRT2DScene: HRT2DGameInputDelegate {
 
-    public func inputDidUpdateSources(_ input: HRT2DGameInput) {
+    open func inputDidUpdateSources(_ input: HRT2DGameInput) {
         input.sources.forEach { $0.gameDelegate = self }
     }
 

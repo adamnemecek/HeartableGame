@@ -29,7 +29,7 @@ final class HRT2DSceneLoadingTests: XCTestCase {
 
     class BaseScene: HRT2DScene, HRTTypeSized, HRTSelfMaking {
         static let typeSize = CGSize(square: 100)
-        class var shouldLoadAssets: Bool { true }
+        override class var shouldLoadAssets: Bool { true }
         override class var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [] }
         class var testLoad: HRTBlock? { nil }
         override class func loadAssets(completion: @escaping HRTBlock) {
@@ -78,7 +78,6 @@ final class HRT2DSceneLoadingTests: XCTestCase {
             sceneKey: sceneKey,
             fileName: "",
             sceneType: sceneType,
-            sceneChange: true,
             longLived: false
         )
     }

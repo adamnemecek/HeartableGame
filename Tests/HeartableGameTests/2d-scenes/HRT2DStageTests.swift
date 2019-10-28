@@ -24,11 +24,17 @@ final class HRT2DStageTests: XCTestCase {
     class SceneB: BaseScene {}
     class SceneC: BaseScene {}
     class SceneD: BaseScene {
+        override class var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [DepA.self] }
         override static func loadAssets(completion: @escaping HRTBlock) {
             dsleep(wait1)
             load1?()
             completion()
         }
+    }
+
+    class DepA: HRTAssetsLoading {
+        static var shouldLoadAssets: Bool { true }
+        static var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [] }
     }
 
     @HRTLate var sceneAInfo: HRT2DSceneInfo
@@ -65,8 +71,8 @@ final class HRT2DStageTests: XCTestCase {
             moveCallback?()
         }
 
-        override func reportProgress(_ progress: Progress) {
-            super.reportProgress(progress)
+        override func reportProgress(_ progress: Progress, completion: HRTBlock? = nil) {
+            super.reportProgress(progress, completion: completion)
             reportCallback?()
         }
 
@@ -80,7 +86,7 @@ final class HRT2DStageTests: XCTestCase {
 
     class InputSourceA: HRT2DGameInputSource {
         weak var gameDelegate: HRT2DGameInputSourceGameDelegate?
-        weak var unitDelegate: HRT2DGameInputSourceUnitDelegate?
+        var unitDelegates = [String: HRT2DGameInputSourceUnitDelegate]()
         func reset() {}
     }
 
@@ -114,7 +120,6 @@ final class HRT2DStageTests: XCTestCase {
             sceneKey: sceneKey,
             fileName: "",
             sceneType: sceneType,
-            sceneChange: true,
             longLived: false
         )
     }

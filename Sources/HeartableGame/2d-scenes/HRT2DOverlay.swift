@@ -5,11 +5,11 @@ import Heartable
 import SpriteKit
 
 /// A 2D scene overlay.
-public class HRT2DOverlay {
+open class HRT2DOverlay {
 
     // MARK: - Constants
 
-    public static let overlayNodeName = "overlayNode"
+    open class var overlayNodeName: String { "overlayNode" }
 
     // MARK: - Props
 
@@ -22,20 +22,20 @@ public class HRT2DOverlay {
     // MARK: - Config
 
     /// Work to be done on `rootNode` before entering.
-    public var preEntrance: ((SKNode) -> Void)?
+    open var preEntrance: ((SKNode) -> Void)?
 
     /// Work to be done on `rootNode` after exiting.
-    public var postExit: ((SKNode) -> Void)?
+    open var postExit: ((SKNode) -> Void)?
 
     /// Action run by `rootNode` upon entrance.
-    public var entranceAction: SKAction?
+    open var entranceAction: SKAction?
 
     /// Action run by `rootNode` upon exit.
-    public var exitAction: SKAction?
+    open var exitAction: SKAction?
 
     #if !os(macOS)
     /// If true, insets background to safe area.
-    public var insetsToSafeArea: Bool {
+    open var insetsToSafeArea: Bool {
         get { rootNode.insetsToSafeArea }
         set { rootNode.insetsToSafeArea = newValue }
     }
@@ -71,21 +71,23 @@ public class HRT2DOverlay {
 
     // MARK: - Functionality
 
-    public func attach(
+    open func attach(
         to parent: SKNode,
         mode: HRTScaleMode = .aspectFit,
+        zPosition: CGFloat = .zero,
         _ completion: HRTBlock? = nil
     ) {
         rootNode.removeFromParent()
         preEntrance?(rootNode)
 
+        rootNode.zPosition = zPosition
         parent.addChild(rootNode)
         rescale(mode)
 
         runEntranceActionIfNeeded() { completion?() }
     }
 
-    public func detach(_ completion: HRTBlock? = nil) {
+    open func detach(_ completion: HRTBlock? = nil) {
         runExitActionIfNeeded() {
             self.rootNode.removeFromParent()
             self.postExit?(self.rootNode)
@@ -93,7 +95,7 @@ public class HRT2DOverlay {
         }
     }
 
-    public func rescale(_ mode: HRTScaleMode = .aspectFit) {
+    open func rescale(_ mode: HRTScaleMode = .aspectFit) {
         guard let scene = rootNode.scene,
             let view = scene.view
         else { return }
@@ -130,6 +132,6 @@ public class HRT2DOverlay {
 extension HRT2DOverlay: HRTNativelySized {
 
     /// The original content size.
-    public var nativeSize: CGSize { contentNode.calculateAccumulatedFrame().size }
+    open var nativeSize: CGSize { contentNode.calculateAccumulatedFrame().size }
 
 }
