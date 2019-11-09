@@ -4,7 +4,7 @@ import Foundation
 import Heartable
 import SpriteKit
 
-#if os(iOS)
+#if !os(macOS)
 import UIKit
 #endif
 
@@ -18,6 +18,10 @@ open class HRT2DButton: SKSpriteNode {
     // MARK: - Props
 
     open var responder: HRT2DButtonResponder? { scene as? HRT2DButtonResponder }
+
+    #if !os(macOS)
+    open var touchDelegate: HRT2DButtonTouchDelegate?
+    #endif
 
     // Texture
     open lazy var defaultTexture = texture
@@ -58,6 +62,11 @@ open class HRT2DButton: SKSpriteNode {
 
     // MARK: - Init
 
+    public override init(texture: SKTexture?, color: UIColor, size: CGSize) {
+        super.init(texture: texture, color: color, size: size)
+        isUserInteractionEnabled = true
+    }
+
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         isUserInteractionEnabled = true
@@ -69,13 +78,14 @@ open class HRT2DButton: SKSpriteNode {
         if isUserInteractionEnabled { responder?.buttonDidTrigger(self) }
     }
 
-    #if os(iOS)
+    #if !os(macOS)
 
     // MARK: - Touch
 
     override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         isHighlighted = true
+        touchDelegate?.button(self, didBegin: touches, with: event)
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -83,14 +93,18 @@ open class HRT2DButton: SKSpriteNode {
         isHighlighted = false
 
         if containsTouches(touches) {
-            // Detected touch-up-inside, so trigger the button.
+            // Detected touch-up-inside.
+            touchDelegate?.button(self, didEndInside: touches, with: event)
             trigger()
+        } else {
+            touchDelegate?.button(self, didEndOutside: touches, with: event)
         }
     }
 
-    override open func touchesCancelled(_ touches: Set<UITouch>?, with event: UIEvent?) {
-        super.touchesCancelled(touches!, with: event)
+    override open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
         isHighlighted = false
+        touchDelegate?.button(self, didCancel: touches, with: event)
     }
 
     open func containsTouches(_ touches: Set<UITouch>) -> Bool {
@@ -102,9 +116,7 @@ open class HRT2DButton: SKSpriteNode {
         }
     }
 
-    #endif
-
-    #if os(macOS)
+    #else
 
     // MARK: - Mouse
 

@@ -27,6 +27,10 @@ public extension HRT2DRenderable {
         return Set(nodes)
     }
 
+    var renderNode: SKNode {
+        component(ofType: HRT2DRenderComponent.self)!.node
+    }
+
     func addNodedComponent(_ nodedComponent: HRT2DNoded, facet: Facet = .default) {
         addComponent(nodedComponent)
         let key = ObjectIdentifier(type(of: nodedComponent))

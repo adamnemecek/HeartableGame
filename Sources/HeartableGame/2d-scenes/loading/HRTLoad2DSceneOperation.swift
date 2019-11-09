@@ -35,6 +35,7 @@ public class HRTLoad2DSceneOperation: HRTOperation {
         } else {
             scene = info.sceneType.init(fileNamed: info.fileName)
         }
+        scene?.config(info)
 
         progress.completedUnitCount = 1
         finish()

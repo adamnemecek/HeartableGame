@@ -3,12 +3,12 @@
 import Foundation
 import Heartable
 
-public protocol HRT2DScriptCreational: CaseIterable, Hashable, RawRepresentable
+public protocol HRT2DStoryComposing: CaseIterable, Hashable, RawRepresentable
 where RawValue == String
 {
 
     /// Name of the script property file.
-    static var scriptName: String { get }
+    static var storyName: String { get }
 
     /// The script instance described by this class.
     static var script: HRT2DScript { get set }
@@ -24,16 +24,16 @@ where RawValue == String
 
 }
 
-public extension HRT2DScriptCreational {
+public extension HRT2DStoryComposing {
 
     /// Populate `script` and `scenes` by extracting from resource data.
     ///
     /// - Important: Must be run before accessing `script` or `scenes`.
     ///
     /// - Parameter bundle: The bundle where the resource is stored.
-    static func generate(bundle: Bundle = .main) {
+    static func compose(bundle: Bundle = .main) {
         // Decode data.
-        let url = bundle.url(forResource: scriptName, withExtension: "plist")!
+        let url = bundle.url(forResource: storyName, withExtension: "plist")!
         let data = try! Data(contentsOf: url)
         let drafts = try! PropertyListDecoder().decode([HRT2DSceneInfoDraft].self, from: data)
 
@@ -44,7 +44,10 @@ public extension HRT2DScriptCreational {
                 sceneKey: $0.sceneKey,
                 fileName: $0.fileName,
                 sceneType: Self(rawValue: $0.sceneKey)!.sceneType,
-                longLived: $0.longLived ?? false
+                preloads: $0.preloads ?? true,
+                showsLoading: $0.showsLoading ?? true,
+                isLongLived: $0.isLongLived ?? false,
+                isHaptic: $0.isHaptic ?? false
             )
         ) }
         let stringKeyedScenes = Dictionary(stringKeyedScenesEntries) { _, last in last }
@@ -52,8 +55,9 @@ public extension HRT2DScriptCreational {
         // Construct scenes graph.
         var scenesGraph = [HRT2DSceneInfo: Set<HRT2DSceneInfo>]()
         drafts.forEach {
+            let nextSceneKeys = $0.nextSceneKeys ?? []
             let nextScenes = Set<HRT2DSceneInfo>(
-                $0.nextSceneKeys.map { key in stringKeyedScenes[key]! }
+                nextSceneKeys.map { key in stringKeyedScenes[key]! }
             )
             scenesGraph[stringKeyedScenes[$0.sceneKey]!] = nextScenes
         }

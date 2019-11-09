@@ -17,14 +17,24 @@ final class HRT2DProgressNodeTests: XCTestCase {
     static let fillNodeOrigin = CGPoint(x: -500, y: -10)
     static let nodeStartFrame = CGRect(origin: fillNodeOrigin, size: nodeSize)
 
-    @HRTLate var progressRep: HRT2DProgressRepresentable
+    @HRTLate var progressRep: SKNode & HRT2DProgressRepresentable
     var node: HRT2DProgressNode { progressRep as! HRT2DProgressNode }
 
     override func setUp() {
         #if !os(macOS)
-        progressRep = Node(color: .red, size: Self.nodeSize)
+        progressRep = Node(
+            texture: nil,
+            color: .red,
+            startSize: CGSize(width: 0, height: 20),
+            fullWidth: 1000
+        )
         #else
-        progressRep = Node(color: NSColor.red, size: Self.nodeSize)
+        progressRep = Node(
+            texture: nil,
+            color: NSColor.red,
+            startSize: CGSize(width: 0, height: 20),
+            fullWidth: 1000
+        )
         #endif
     }
 

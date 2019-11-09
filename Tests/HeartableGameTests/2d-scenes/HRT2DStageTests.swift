@@ -9,20 +9,41 @@ final class HRT2DStageTests: XCTestCase {
 
     // MARK: - Prep
 
+    // Stage
+
+    @HRTLate var stage: HRT2DStage
+
     // Scenes
 
     class BaseScene: HRT2DScene, HRTSelfMaking, HRTTypeSized {
         static var typeSize: CGSize = .zero
-
         override func didMove(to view: SKView) {
             super.didMove(to: view)
-            HRT2DStageTests.moved1?()
+            moved1?()
         }
+        override class func unloadAssets() {}
     }
 
-    class SceneA: BaseScene {}
-    class SceneB: BaseScene {}
-    class SceneC: BaseScene {}
+    class SceneA: BaseScene {
+        override class var assetsLoadingDependencies: [HRTAssetsLoading.Type] {
+            [DepA.self, DepB.self]
+        }
+        static var unload: HRTBlock?
+        override static func unloadAssets() { unload?() }
+    }
+
+    class SceneB: BaseScene {
+        override class var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [DepC.self] }
+        static var unload: HRTBlock?
+        override static func unloadAssets() { unload?() }
+    }
+
+    class SceneC: BaseScene {
+        override class var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [DepD.self] }
+        static var unload: HRTBlock?
+        override static func unloadAssets() { unload?() }
+    }
+
     class SceneD: BaseScene {
         override class var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [DepA.self] }
         override static func loadAssets(completion: @escaping HRTBlock) {
@@ -30,11 +51,40 @@ final class HRT2DStageTests: XCTestCase {
             load1?()
             completion()
         }
+        static var unload: HRTBlock?
+        override static func unloadAssets() { unload?() }
     }
 
     class DepA: HRTAssetsLoading {
         static var shouldLoadAssets: Bool { true }
         static var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [] }
+        static func loadAssets(completion: @escaping HRTBlock) { completion() }
+        static var unload: HRTBlock?
+        static func unloadAssets() { unload?() }
+    }
+
+    class DepB: HRTAssetsLoading {
+        static var shouldLoadAssets: Bool { true }
+        static var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [] }
+        static func loadAssets(completion: @escaping HRTBlock) { completion() }
+        static var unload: HRTBlock?
+        static func unloadAssets() { unload?() }
+    }
+
+    class DepC: HRTAssetsLoading {
+        static var shouldLoadAssets: Bool { true }
+        static var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [] }
+        static func loadAssets(completion: @escaping HRTBlock) { completion() }
+        static var unload: HRTBlock?
+        static func unloadAssets() { unload?() }
+    }
+
+    class DepD: HRTAssetsLoading {
+        static var shouldLoadAssets: Bool { true }
+        static var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [] }
+        static func loadAssets(completion: @escaping HRTBlock) { completion() }
+        static var unload: HRTBlock?
+        static func unloadAssets() { unload?() }
     }
 
     @HRTLate var sceneAInfo: HRT2DSceneInfo
@@ -71,9 +121,9 @@ final class HRT2DStageTests: XCTestCase {
             moveCallback?()
         }
 
-        override func reportProgress(_ progress: Progress, completion: HRTBlock? = nil) {
-            super.reportProgress(progress, completion: completion)
+        override func wrapUp(_ completion: @escaping HRTBlock) {
             reportCallback?()
+            super.wrapUp(completion)
         }
 
         override func reportFailure() {
@@ -103,14 +153,30 @@ final class HRT2DStageTests: XCTestCase {
     // MARK: Lifecycle
 
     override func setUp() {
+        SceneA.unload = nil
+        SceneB.unload = nil
+        SceneC.unload = nil
+        SceneD.unload = nil
+
+        DepA.unload = nil
+        DepB.unload = nil
+
         sceneAInfo = makeSceneInfo("a", sceneType: SceneA.self)
         sceneBInfo = makeSceneInfo("b", sceneType: SceneB.self)
         sceneCInfo = makeSceneInfo("c", sceneType: SceneC.self)
         sceneDInfo = makeSceneInfo("d", sceneType: SceneD.self)
 
-        view1 = SKView()
         Self.wait1 = 1.0
         Self.load1 = nil
+        Self.moved1 = nil
+        view1 = SKView()
+
+        stage = HRT2DStage(
+            script1,
+            view: view1,
+            input: input1,
+            progressScene: ProgressSceneA.make()
+        )
     }
 
     // MARK: - Utils
@@ -120,15 +186,16 @@ final class HRT2DStageTests: XCTestCase {
             sceneKey: sceneKey,
             fileName: "",
             sceneType: sceneType,
-            longLived: false
+            preloads: true,
+            showsLoading: true,
+            isLongLived: false,
+            isHaptic: false
         )
     }
 
     // MARK: - Tests
 
     func testInit() {
-        let stage = HRT2DStage(view1, input: input1, script: script1)
-
         let sceneALoader = stage.sceneLoaders[sceneAInfo]
         XCTAssertNil(sceneALoader?.progress)
         XCTAssert(sceneALoader?.stateMachine.currentState is HRTLoad2DSceneReady)
@@ -147,13 +214,12 @@ final class HRT2DStageTests: XCTestCase {
     }
 
     func testProgressScene_loadSuccess() {
-        let stage = HRT2DStage(view1, input: input1, script: script1)
-        stage.progressSceneType = ProgressSceneA.self
+        stage.progressScene = ProgressSceneA.make()
         let progressScene = stage.progressScene as! ProgressSceneA
 
         let exp1 = expectation(description: "progress scene is presented")
         progressScene.moveCallback = {
-            XCTAssert(stage.sceneLoaders[self.sceneDInfo]?.isRequested == true)
+            XCTAssert(self.stage.sceneLoaders[self.sceneDInfo]?.isRequested == true)
             XCTAssertEqual(progressScene.view, self.view1)
             exp1.fulfill()
         }
@@ -176,19 +242,19 @@ final class HRT2DStageTests: XCTestCase {
             exp4.fulfill()
         }
 
-        stage.transition(to: sceneDInfo)
+        stage.loadAndPresentScene(sceneDInfo)
 
-        XCTWaiter.wait(for: [exp1, exp2, exp3, exp4], timeout: 1.5).process()
+        let exps = [exp1, exp2, exp3, exp4]
+        XCTWaiter.wait(for: exps, timeout: 1.5).process()
     }
 
     func testProgressScene_loadFailure() {
-        let stage = HRT2DStage(view1, input: input1, script: script1)
-        stage.progressSceneType = ProgressSceneA.self
+        stage.progressScene = ProgressSceneA.make()
         let progressScene = stage.progressScene as! ProgressSceneA
 
         let exp1 = expectation(description: "progress scene is presented")
         progressScene.moveCallback = {
-            let dLoader = stage.sceneLoaders[self.sceneDInfo]
+            let dLoader = self.stage.sceneLoaders[self.sceneDInfo]
             XCTAssertNotNil(dLoader)
             dLoader?.cancel()
             exp1.fulfill()
@@ -201,11 +267,48 @@ final class HRT2DStageTests: XCTestCase {
         exp3.isInverted = true
         Self.moved1 = { exp3.fulfill() }
 
-        stage.transition(to: sceneDInfo)
+        stage.loadAndPresentScene(sceneDInfo)
 
         XCTWaiter.wait(for: [exp1, exp2, exp3], timeout: 1.5).process {
             XCTAssert(self.view1.scene is ProgressSceneA)
         }
+    }
+
+    func testUnload() {
+        stage.currSceneInfo = sceneBInfo
+
+        let exp1 = expectation(description: "SceneA is unloaded.")
+        SceneA.unload = { exp1.fulfill() }
+
+        let exp2 = expectation(description: "SceneB is not unloaded.")
+        exp2.isInverted = true
+        SceneB.unload = { exp2.fulfill() }
+
+        let exp3 = expectation(description: "SceneC is unloaded.")
+        SceneC.unload = { exp3.fulfill() }
+
+        let exp4 = expectation(description: "SceneD is not unloaded.")
+        exp4.isInverted = true
+        SceneD.unload = { exp4.fulfill() }
+
+        let exp5 = expectation(description: "DepA is not unloaded.")
+        exp5.isInverted = true
+        DepA.unload = { exp5.fulfill() }
+
+        let exp6 = expectation(description: "DepB is unloaded.")
+        DepB.unload = { exp6.fulfill() }
+
+        let exp7 = expectation(description: "DepC is not unloaded.")
+        exp7.isInverted = true
+        DepC.unload = { exp7.fulfill() }
+
+        let exp8 = expectation(description: "DepD is unloaded.")
+        DepD.unload = { exp8.fulfill() }
+
+        stage.releaseUnneededAssets(for: sceneBInfo)
+
+        let exps = [exp1, exp2, exp3, exp4, exp5, exp6, exp7, exp8]
+        XCTWaiter.wait(for: exps, timeout: 1).process()
     }
 
 }

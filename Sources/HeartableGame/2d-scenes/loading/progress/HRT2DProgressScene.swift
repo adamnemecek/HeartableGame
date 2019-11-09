@@ -4,7 +4,7 @@ import Foundation
 import Heartable
 import SpriteKit
 
-open class HRT2DProgressScene: HRT2DScene, HRTFileBased, HRTSelfMaking {
+open class HRT2DProgressScene: HRT2DScene, HRT2DProgressRendering, HRTFileBased, HRTSelfMaking {
 
     // MARK: - Constants
 
@@ -30,21 +30,22 @@ open class HRT2DProgressScene: HRT2DScene, HRTFileBased, HRTSelfMaking {
     }
 
     /// Node for progress description text.
-    open var labelNode: SKLabelNode? {
+    open var progressLabel: HRT2DProgressLabeling? {
         backgroundNode?.childNode(withName: Self.labelNodeName) as? SKLabelNode
     }
 
     /// Node for progress visualization.
-    open var progressNode: HRT2DProgressRepresentable? {
+    open var progressVisual: HRT2DProgressRepresentable? {
         backgroundNode?.childNode(withName: Self.progressNodeName) as? HRT2DProgressRepresentable
     }
 
     // MARK: - Functionality
 
     open func wrapUp(_ completion: @escaping HRTBlock) {
-        if let progressAction = progressNode?.progressAction {
-            let duration = Double(progressAction.speed) * progressAction.duration
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) { completion() }
+        if let progressAction = progressVisual?.progressAction {
+            DispatchQueue.main.asyncAfter(deadline: .now() + progressAction.duration) {
+                completion()
+            }
         } else {
             completion()
         }
@@ -52,13 +53,13 @@ open class HRT2DProgressScene: HRT2DScene, HRTFileBased, HRTSelfMaking {
 
     open func reset() {
         targetSceneInfo = nil
-        progressNode?.resetProgress()
-        labelNode?.text = nil
+        progressVisual?.resetProgress()
+        progressLabel?.text = nil
     }
 
     open func reportProgress(_ progress: Progress, completion: HRTBlock? = nil) {
-        labelNode?.text = progress.localizedDescription
-        progressNode?.updateProgress(
+        progressLabel?.text = progress.localizedDescription
+        progressVisual?.updateProgress(
             progress.fractionCompleted,
             animated: true,
             completion: completion

@@ -31,15 +31,17 @@ public extension SKNode {
     ///
     /// - Parameters:
     ///     - node: The node.
-    ///     - guideAnchor: The anchor on `guide`.
+    ///     - guideAnchor: The anchor on `guide`. If nil, defaults to `guide`'s position.
     ///     - guide: The target node. If nil, defaults to `node`'s parent.
+    ///     - withGuideSubtree: True iff `guide`'s frame is accumulated.
     ///     - constants: Offsets to apply to the position.
     /// - Returns: The position of the specified anchor in `node`'s parent's coordinate space, or
     ///     nil if not calculable.
     static func position(
         for node: SKNode,
-        matching guideAnchor: HRT2DPositionAnchor,
+        matching guideAnchor: HRT2DPositionAnchor?,
         of guide: SKNode? = nil,
+        withGuideSubtree: Bool = false,
         constants: CGPoint = .zero
     ) -> CGPoint? {
         guard let nodeParent = node.parent else { return nil }
@@ -47,17 +49,24 @@ public extension SKNode {
         let target = guide ?? nodeParent
         let targetParent = target.parent ?? target
 
+        guard let guideAnchor = guideAnchor else {
+            // No guide anchor is provided, so simply use the guide's position.
+            let convertedTargetPosition = nodeParent.convert(target.position, from: targetParent)
+            return convertedTargetPosition + constants
+        }
+
         // Find the minimum point (i.e. the bottom-leftmost point) in the target's parent's
         // coordinate space.
-        let targetMin = CGPoint(x: target.frame.minX, y: target.frame.minY)
+        let targetFrame = withGuideSubtree ? target.calculateAccumulatedFrame() : target.frame
+        let targetMin = CGPoint(x: targetFrame.minX, y: targetFrame.minY)
 
         // Convert the minimum point to `node`'s parent's coordinate space.
         let convertedTargetMin = nodeParent.convert(targetMin, from: targetParent)
 
         // Find the position of the target anchor.
         let convertedTargetAnchorPosition = CGPoint(
-            x: convertedTargetMin.x + (target.frame.width * guideAnchor.unitPoint.x),
-            y: convertedTargetMin.y + (target.frame.height * guideAnchor.unitPoint.y)
+            x: convertedTargetMin.x + (targetFrame.width * guideAnchor.unitPoint.x),
+            y: convertedTargetMin.y + (targetFrame.height * guideAnchor.unitPoint.y)
         )
 
         // Apply offsets and return the final position.
@@ -65,7 +74,7 @@ public extension SKNode {
     }
 
     /// Calculates the position (in `node`'s parent's coordinate space) that, if assigned to node,
-    /// would place the specified `node` anchor onto the specified `point`.
+    /// would place the specified `nodeAnchor` onto the specified `point`.
     ///
     /// - Parameters:
     ///     - node: The node.
@@ -102,7 +111,7 @@ public extension SKNode {
             y: nodeMin.y + (nodeFrame.height * nodeAnchor.unitPoint.y)
         )
 
-        // Find the offset between the node anchor's position and the guide anchor's position.
+        // Find the offset between the node anchor's position and the point's position.
         let anchorPositionsOffset = pointPosition - nodeAnchorPosition
 
         // With the offset, we no longer need to take `node`'s `anchorPoint` property (if any) into
@@ -117,22 +126,25 @@ public extension SKNode {
     ///     - node: The node.
     ///     - nodeAnchor: The anchor on `node`.
     ///     - withSubtree: True iff `node`'s frame is accumulated.
-    ///     - guideAnchor: The anchor on `guide`.
+    ///     - guideAnchor: The anchor on `guide`. If nil, defaults to `guide`'s position.
     ///     - guide: The target node. If nil, defaults to `node`'s parent.
+    ///     - withGuideSubtree: True iff `guide`'s frame is accumulated.
     ///     - constants: Offsets to apply to the position.
     /// - Returns: The position as described, or nil if not calculable.
     static func position(
         for node: SKNode,
         at nodeAnchor: HRT2DPositionAnchor,
         withSubtree: Bool = true,
-        matching guideAnchor: HRT2DPositionAnchor,
+        matching guideAnchor: HRT2DPositionAnchor?,
         of guide: SKNode? = nil,
+        withGuideSubtree: Bool = false,
         constants: CGPoint = .zero
     ) -> CGPoint? {
         guard let guideAnchorPosition = position(
             for: node,
             matching: guideAnchor,
             of: guide,
+            withGuideSubtree: withGuideSubtree,
             constants: constants
         )
         else { return nil }
@@ -162,14 +174,16 @@ public extension SKNode {
     ///     - nodeAnchor: The anchor on `node` to align with. If nil, uses `SKNode`'s inherent
     ///       `anchorPoint`.
     ///     - withSubtree: True iff `node`'s frame is accumulated.
-    ///     - guideAnchor: The anchor on `guide` to align to.
+    ///     - point: The target point in `guide`'s coordinate space.
     ///     - guide: The target node. If nil, defaults to this node's parent.
+    ///     - withGuideSubtree: True iff `guide`'s frame is accumulated.
     ///     - constants: Offsets to apply to the position.
     func align(
         _ nodeAnchor: HRT2DPositionAnchor? = nil,
-        collectively withSubtree: Bool = true,
+        withSubtree: Bool = true,
         to point: CGPoint,
         in guide: SKNode? = nil,
+        withGuideSubtree: Bool = false,
         constants: CGPoint = .zero
     ) {
         let position: CGPoint?
@@ -201,14 +215,17 @@ public extension SKNode {
     ///     - nodeAnchor: The anchor on `node` to align with. If nil, uses SKNode's inherent
     ///       `anchorPoint`.
     ///     - withSubtree: True iff `node`'s frame is accumulated.
-    ///     - guideAnchor: The anchor on `guide` to align to.
+    ///     - guideAnchor: The anchor on `guide` to align to. If nil, defaults to `guide`'s
+    ///         position.
     ///     - guide: The target node. If nil, defaults to this node's parent.
+    ///     - withGuideSubtree: True iff `guide`'s frame is accumulated.
     ///     - constants: Offsets to apply to the position.
     func align(
         _ nodeAnchor: HRT2DPositionAnchor? = nil,
-        collectively withSubtree: Bool = true,
-        to guideAnchor: HRT2DPositionAnchor,
+        withSubtree: Bool = true,
+        to guideAnchor: HRT2DPositionAnchor?,
         of guide: SKNode? = nil,
+        withGuideSubtree: Bool = false,
         constants: CGPoint = .zero
     ) {
         let position: CGPoint?
@@ -220,6 +237,7 @@ public extension SKNode {
                 withSubtree: withSubtree,
                 matching: guideAnchor,
                 of: guide,
+                withGuideSubtree: withGuideSubtree,
                 constants: constants
             )
         } else {
@@ -227,6 +245,7 @@ public extension SKNode {
                 for: self,
                 matching: guideAnchor,
                 of: guide,
+                withGuideSubtree: withGuideSubtree,
                 constants: constants
             )
         }

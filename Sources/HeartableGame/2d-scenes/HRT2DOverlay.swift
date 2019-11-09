@@ -14,10 +14,10 @@ open class HRT2DOverlay {
     // MARK: - Props
 
     /// The overlay's background, which is sized to fill the view.
-    private let rootNode: HRT2DViewGuide
+    let rootNode: HRT2DViewGuide
 
     /// The overlay's content.
-    private let contentNode: SKSpriteNode
+    let contentNode: SKSpriteNode
 
     // MARK: - Config
 
@@ -72,15 +72,15 @@ open class HRT2DOverlay {
     // MARK: - Functionality
 
     open func attach(
-        to parent: SKNode,
+        to parent: SKCameraNode,
         mode: HRTScaleMode = .aspectFit,
-        zPosition: CGFloat = .zero,
+        zPosition: CGFloat? = nil,
         _ completion: HRTBlock? = nil
     ) {
-        rootNode.removeFromParent()
         preEntrance?(rootNode)
 
-        rootNode.zPosition = zPosition
+        rootNode.zPosition = zPosition ?? parent.zPosition
+        rootNode.removeFromParent()
         parent.addChild(rootNode)
         rescale(mode)
 
@@ -109,7 +109,7 @@ open class HRT2DOverlay {
 
     // MARK: - Utils
 
-    private func runEntranceActionIfNeeded(_ completion: HRTBlock? = nil) {
+    func runEntranceActionIfNeeded(_ completion: HRTBlock? = nil) {
         guard let entranceAction = entranceAction else {
             completion?()
             return
@@ -117,7 +117,7 @@ open class HRT2DOverlay {
         rootNode.run(entranceAction) { completion?() }
     }
 
-    private func runExitActionIfNeeded(_ completion: HRTBlock? = nil) {
+    func runExitActionIfNeeded(_ completion: HRTBlock? = nil) {
         guard let exitAction = exitAction else {
             completion?()
             return

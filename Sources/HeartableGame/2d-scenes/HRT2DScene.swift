@@ -8,63 +8,108 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
 
     // MARK: - Type props
 
-    open class var shouldLoadAssets: Bool { true }
+    // MARK: Assets
+    open class var textureNames: [String] { [] }
+    open class var textureAtlasNames: [String] { [] }
 
+    // MARK: Loading
+    open class var shouldLoadAssets: Bool { true }
     open class var assetsLoadingDependencies: [HRTAssetsLoading.Type] { [] }
 
     // MARK: - Type functionality
+
+    // MARK: Loading
 
     open class func loadAssets(completion: @escaping HRTBlock) {
         load2DAssets { _, _ in completion() }
     }
 
+    open class func unloadAssets() {}
+
     // MARK: - Props
 
+    open weak var moveDelegate: HRT2DSceneMoveDelegate?
+
     open weak var stage: HRT2DStage? {
-        didSet { stage?.input.delegate = self }
+        didSet { stage?.input?.delegate = self }
     }
+
+    open var entities = Set<GKEntity>()
+    
+    open var componentSystems = [ObjectIdentifier: GKComponentSystem<GKComponent>]()
 
     open var overlay: HRT2DOverlay? {
         didSet {
-            if let camera = camera {
-                overlay?.attach(to: camera)
-            }
+            if let camera = camera { overlay?.attach(to: camera, zPosition: 0) }
             oldValue?.detach()
         }
     }
 
     open var curtain: HRT2DCurtain? {
         didSet {
-            if let camera = camera {
-                curtain?.attach(to: camera)
-            }
+            if let camera = camera { curtain?.attach(to: camera, zPosition: 1) }
             oldValue?.detach()
         }
     }
 
-    open var entities = Set<GKEntity>()
+    // MARK: Config
 
-    open var componentSystems = [ObjectIdentifier: GKComponentSystem<GKComponent>]()
+    open var isHaptic = false
 
     // MARK: State
 
-    public var lastUpdateTime: TimeInterval = 0
+    open lazy var curtainStateMachine = GKStateMachine(states: [
+        HRT2DSceneOpening(self),
+        HRT2DSceneOpened(self),
+        HRT2DSceneClosing(self),
+        HRT2DSceneClosed(self)
+    ])
 
-    // MARK: Config
+    open var exitCompletion: HRTBlock?
 
-    /// The initial reference point for the camera.
-    open var initialPoint: CGPoint = .zero
+    open var lastUpdateTime: TimeInterval = 0
+
+    // MARK: Haptics
+
+    open var hapticEngine: UIImpactFeedbackGenerator?
 
     // MARK: - Lifecycle
 
     open override func sceneDidLoad() {
         super.sceneDidLoad()
+        scaleMode = .aspectFill
         if camera == nil { setUpCamera() }
     }
 
     open override func didMove(to view: SKView) {
         super.didMove(to: view)
+
         rescale()
+
+        curtainStateMachine.enter(HRT2DSceneOpening.self)
+
+        entities
+            .compactMap { $0 as? HRTGameEntity }
+            .forEach { $0.didMove(to: view) }
+
+        if isHaptic {
+            hapticEngine = UIImpactFeedbackGenerator()
+            hapticEngine?.prepare()
+        }
+
+        moveDelegate?.sceneDidMove(self)
+    }
+
+    open override func willMove(from view: SKView) {
+        super.willMove(from: view)
+
+        entities
+            .compactMap { $0 as? HRTGameEntity }
+            .forEach { $0.willMove(from: view) }
+
+        if isHaptic { hapticEngine = nil }
+
+        moveDelegate?.sceneWillMove(self)
     }
 
     open override func didChangeSize(_ oldSize: CGSize) {
@@ -133,17 +178,14 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
         componentSystem(componentType)?.removeComponent(component)
     }
 
-    // MARK: Camera
+    // MARK: Setup
 
     open func setUpCamera() {
         camera?.removeFromParent()
         let camera = SKCameraNode()
-        self.camera = camera
+        camera.position = .zero
         addChild(camera)
-    }
-
-    open func placeCamera(at point: CGPoint) {
-        camera?.position = point
+        self.camera = camera
     }
 
     // MARK: - Utils
@@ -151,6 +193,19 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
     open func rescale() {
         overlay?.rescale()
         curtain?.rescale()
+    }
+
+    open func config(_ info: HRT2DSceneInfo) {
+        isHaptic = info.isHaptic
+    }
+
+    open func prepareToMove(from view: SKView, completion: HRTBlock? = nil) {
+        switch curtainStateMachine.currentState {
+        case is HRT2DSceneOpening, is HRT2DSceneOpened:
+            exitCompletion = completion
+            curtainStateMachine.enter(HRT2DSceneClosing.self)
+        default: completion?()
+        }
     }
 
 }

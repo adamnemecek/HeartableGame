@@ -47,7 +47,7 @@ final class SKNode_PositionTests: XCTestCase {
         node1.align(to: point, in: node0)
         XCTAssertEqual(node1.position, CGPoint.zero)
 
-        node1.align(collectively: true, to: CGPoint(x: 100, y: 200), in: node0)
+        node1.align(withSubtree: true, to: CGPoint(x: 100, y: 200), in: node0)
         XCTAssertEqual(node1.position, CGPoint.zero)
 
         node1.align(.bottom, to: point)
@@ -56,7 +56,7 @@ final class SKNode_PositionTests: XCTestCase {
         node1.align(.bottom, to: point, in: node0)
         XCTAssertEqual(node1.position, CGPoint.zero)
 
-        node1.align(.bottom, collectively: true, to: point, in: node0)
+        node1.align(.bottom, withSubtree: true, to: point, in: node0)
         XCTAssertEqual(node1.position, CGPoint.zero)
 
         node1.align(to: .top)

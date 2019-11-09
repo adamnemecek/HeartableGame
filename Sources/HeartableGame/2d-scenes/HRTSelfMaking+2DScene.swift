@@ -6,7 +6,7 @@ import SpriteKit
 
 public extension HRTSelfMaking where Self: SKScene & HRTTypeSized {
     static func make() -> Self {
-        let scene = Self.init(size: typeSize)
+        let scene = Self(size: typeSize)
         scene.scaleMode = .aspectFill
         return scene
     }
@@ -14,8 +14,7 @@ public extension HRTSelfMaking where Self: SKScene & HRTTypeSized {
 
 public extension HRTSelfMaking where Self: SKScene & HRTFileBased {
     static func make() -> Self {
-        let sceneContainer = GKScene(fileNamed: fileName)!
-        let scene = sceneContainer.rootNode as! Self
+        let scene = Self(fileNamed: fileName)!
         scene.scaleMode = .aspectFill
         return scene
     }

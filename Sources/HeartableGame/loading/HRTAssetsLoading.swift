@@ -5,6 +5,8 @@ import Heartable
 
 public protocol HRTAssetsLoading {
 
+    static var typeID: ObjectIdentifier { get }
+
     /// True iff assets should be loaded (i.e. false if assets are already loaded).
     static var shouldLoadAssets: Bool { get }
 
@@ -14,7 +16,7 @@ public protocol HRTAssetsLoading {
     /// Performs loading of assets.
     ///
     /// - Important: `completion` must be called when loading is complete.
-    /// - Parameter completion: The completion handler. Must be called.
+    /// - Parameter completion: The completion handler.
     static func loadAssets(completion: @escaping HRTBlock)
 
     /// Releases loaded assets from memory.
@@ -26,11 +28,7 @@ public extension HRTAssetsLoading {
 
     // MARK: - Impl
 
-    static func loadAssets(completion: @escaping HRTBlock) {
-        completion()
-    }
-
-    static func unloadAssets() {}
+    static var typeID: ObjectIdentifier { ObjectIdentifier(Self.self) }
 
     // MARK: - Auxiliary
 

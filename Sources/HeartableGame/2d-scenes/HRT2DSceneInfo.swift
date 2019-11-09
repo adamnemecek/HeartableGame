@@ -6,17 +6,28 @@ import Foundation
 /// The metadata of an `HRT2DScene`.
 public struct HRT2DSceneInfo {
 
+    // MARK: - Props
+
     /// This scene's identifier.
-    let sceneKey: String
+    public let sceneKey: String
 
     /// The base name (no file extensions) of the associated scene file.
-    let fileName: String
+    public let fileName: String
 
     /// The scene class to initiate from this metadata.
-    let sceneType: HRT2DScene.Type
+    public let sceneType: HRT2DScene.Type
+
+    /// If true, this scene is preloaded if possible.
+    public var preloads: Bool
+
+    /// If true, shows a loading progress scene if needed.
+    public let showsLoading: Bool
 
     /// If true, this scene is not automatically released from memory.
-    let longLived: Bool
+    public let isLongLived: Bool
+
+    /// If true, this scene contains elements that generate haptic feedback.
+    public let isHaptic: Bool
 
 }
 

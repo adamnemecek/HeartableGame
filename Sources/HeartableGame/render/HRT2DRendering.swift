@@ -13,7 +13,7 @@ public protocol HRT2DRendering: HRT2DScene {
     /// The nodes in the scene's node tree to render to.
     var layers: HRTMap<LayerKey, SKNode> { get set }
 
-    /// Constructs `layers`.
+    /// Constructs the `layers` mapping.
     func loadLayers()
 
     // MARK: - Entity
@@ -83,13 +83,7 @@ public extension HRT2DRendering {
     // MARK: - Layer impl
 
     func loadLayers() {
-        layers = HRTMap<LayerKey, SKNode> {
-            guard let layer = self[$0.path].first else {
-                fatalError("Node not found for path: \($0.path)")
-            }
-            layer.zPosition = $0.zPosition
-            return layer
-        }
+        layers = HRTMap<LayerKey, SKNode> { $0.getOrCreate(in: self) }
     }
 
     // MARK: - Entity impl

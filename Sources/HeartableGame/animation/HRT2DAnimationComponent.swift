@@ -38,23 +38,14 @@ where Variant: HRT2DAnimationVariant, Direction: HRT2DDirection, Facet: HRT2DFac
     // MARK: Attrs
 
     /// The main animation node.
-    public private(set) var node: SKSpriteNode
+    public let node: SKSpriteNode
 
-    /// Mapping from facets to nodes.
+    /// Mapping from facets to nodes that run respective facet actions, as specified by an animation
+    /// unit.
     public let facetNodes: [Facet: SKNode]
 
     /// Info on all associated animations.
     public let units: AnimationUnits
-
-    /// The associated render component.
-    public var renderComponent: HRT2DRenderComponent? {
-        entity?.component(ofType: HRT2DRenderComponent.self)
-    }
-
-    /// The associated rotation component.
-    public var rotationComponent: HRT2DRotationComponent<Direction>? {
-        entity?.component(ofType: HRT2DRotationComponent<Direction>.self)
-    }
 
     // MARK: - Init
 
@@ -150,6 +141,24 @@ where Variant: HRT2DAnimationVariant, Direction: HRT2DDirection, Facet: HRT2DFac
         // Update state.
         unit = newUnit
         elapsedDuration = 0
+    }
+
+}
+
+// MARK: - Utils
+
+public extension HRT2DAnimationComponent {
+
+    // MARK: Convenience
+
+    /// The associated render component.
+    var renderComponent: HRT2DRenderComponent? {
+        entity?.component(ofType: HRT2DRenderComponent.self)
+    }
+
+    /// The associated rotation component.
+    var rotationComponent: HRT2DRotationComponent<Direction>? {
+        entity?.component(ofType: HRT2DRotationComponent<Direction>.self)
     }
 
 }

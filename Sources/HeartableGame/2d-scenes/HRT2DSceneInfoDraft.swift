@@ -10,16 +10,28 @@ public struct HRT2DSceneInfoDraft: Decodable {
     /// Name of the resource file containing this scene.
     var fileName: String
 
+    /// If true, this scene is preloaded if possible.
+    var preloads: Bool?
+
+    /// If true, shows a loading progress scene if needed.
+    var showsLoading: Bool?
+
     /// If true, this scene is not automatically released from memory.
-    var longLived: Bool?
+    var isLongLived: Bool?
+
+    /// If true, this scene contains elements that generate haptic feedback.
+    var isHaptic: Bool?
 
     /// List of the next scenes in the game's narrative.
-    var nextSceneKeys: [String]
+    var nextSceneKeys: [String]?
 
     private enum CodingKeys: String, CodingKey {
         case sceneKey
         case fileName
-        case longLived
+        case preloads
+        case showsLoading
+        case isLongLived
+        case isHaptic
         case nextSceneKeys = "next"
     }
 

@@ -33,6 +33,40 @@ final class HRT2DRenderingTests: XCTestCase {
         @HRTLate var layers: HRTMap<LayerKey, SKNode>
     }
 
+    class SceneB: HRT2DScene, HRTTypeSized, HRTSelfMaking, HRT2DRendering {
+        enum LayerKey: CGFloat, HRT2DLayerKey {
+            static var `default` = Self.a
+
+            case a = 0
+
+            case b
+            case c, d
+
+            case e
+            case f
+            case g, h
+
+            var parent: Self? {
+                switch self {
+                case .a: return nil
+
+                case .b: return .a
+                case .c: return .b
+                case .d: return .b
+
+                case .e: return .a
+                case .f: return .e
+                case .g: return .f
+                case .h: return .f
+                }
+            }
+        }
+
+        static let typeSize = CGSize(width: 1024, height: 1366)
+
+        @HRTLate var layers: HRTMap<LayerKey, SKNode>
+    }
+
     // MARK: Entities
 
     class EntityA: HRTGameEntity {
@@ -85,6 +119,7 @@ final class HRT2DRenderingTests: XCTestCase {
     // MARK: Props
 
     @HRTLate var scene1: SceneA
+    @HRTLate var scene2: SceneB
 
     // MARK: Lifecycle
 
@@ -97,6 +132,9 @@ final class HRT2DRenderingTests: XCTestCase {
             ObjectIdentifier(ComponentC.self): GKComponentSystem(componentClass: ComponentC.self),
             ObjectIdentifier(ComponentD.self): GKComponentSystem(componentClass: ComponentD.self)
         ]
+
+        scene2 = SceneB.make()
+        scene2.loadLayers()
     }
 
     // MARK: - Tests
@@ -109,6 +147,32 @@ final class HRT2DRenderingTests: XCTestCase {
         }
         scene1.layers.values.forEach { XCTAssert($0.children.isEmpty) }
         XCTAssert(scene1.entities.isEmpty)
+    }
+
+    func testLayerNodes() {
+        let aPath = SceneB.LayerKey.a.path
+        XCTAssertEqual(aPath, "a")
+        let aChild = scene2.childNode(withName: aPath)
+        XCTAssertEqual(aChild, scene2.layers[.a])
+        XCTAssertEqual(aChild?.zPosition, SceneB.LayerKey.a.zPosition)
+
+        let bPath = SceneB.LayerKey.b.path
+        XCTAssertEqual(bPath, "a/b")
+        let bChild = scene2.childNode(withName: bPath)
+        XCTAssertEqual(bChild, scene2.layers[.b])
+        XCTAssertEqual(bChild?.zPosition, SceneB.LayerKey.b.zPosition)
+
+        let cPath = SceneB.LayerKey.c.path
+        XCTAssertEqual(cPath, "a/b/c")
+        let cChild = scene2.childNode(withName: cPath)
+        XCTAssertEqual(cChild, scene2.layers[.c])
+        XCTAssertEqual(cChild?.zPosition, SceneB.LayerKey.c.zPosition)
+
+        let hPath = SceneB.LayerKey.h.path
+        XCTAssertEqual(hPath, "a/e/f/h")
+        let hChild = scene2.childNode(withName: hPath)
+        XCTAssertEqual(hChild, scene2.layers[.h])
+        XCTAssertEqual(hChild?.zPosition, SceneB.LayerKey.h.zPosition)
     }
 
     // MARK: Entity

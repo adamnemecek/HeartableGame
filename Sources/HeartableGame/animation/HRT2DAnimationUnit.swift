@@ -16,6 +16,7 @@ where Variant: HRT2DAnimationVariant, Direction: HRT2DDirection, Facet: HRT2DFac
         for variant: Variant,
         from atlas: SKTextureAtlas,
         makePrefix: (Direction) -> String,
+        makeAnimation: (([SKTexture]) -> SKAction)? = nil,
         repeatCount: Int = 0,
         reversed: Bool = false,
         fps: Int = 10,
@@ -30,6 +31,7 @@ where Variant: HRT2DAnimationVariant, Direction: HRT2DDirection, Facet: HRT2DFac
                 variant: variant,
                 direction: direction,
                 textures: textures,
+                makeAnimation: makeAnimation,
                 repeatCount: repeatCount,
                 fps: fps,
                 facetActions: facetActions
@@ -48,13 +50,17 @@ where Variant: HRT2DAnimationVariant, Direction: HRT2DDirection, Facet: HRT2DFac
     /// The main animating textures.
     public let textures: [SKTexture]
 
+    /// If set, this closure is used to create a custom animation that replaces the main animation
+    /// of this unit.
+    public let makeAnimation: (([SKTexture]) -> SKAction)?
+
     /// The number of times to repeat the animation. If 0, repeats forever.
     @HRTAtLeast(0) public private(set) var repeatCount: Int = 0
 
     /// Number of frames per second.
     public let fps: Int
 
-    /// Mapping of facets to actions.
+    /// Mapping of facets to actions (i.e. auxiliary animations).
     public let facetActions: FacetActions
 
     /// Index of the texture in `textures` to use as the first frame. Stateful.
@@ -77,7 +83,12 @@ public extension HRT2DAnimationUnit {
 
     /// Animation action derived from this unit.
     var animation: SKAction {
-        SKAction.animate(with: offsetTextures, timePerFrame: timePerFrame).repeated(repeatCount)
+        if let makeAnimation = makeAnimation {
+            return makeAnimation(offsetTextures)
+        } else {
+            return SKAction.animate(with: offsetTextures, timePerFrame: timePerFrame)
+                .repeated(repeatCount)
+        }
     }
 
 }

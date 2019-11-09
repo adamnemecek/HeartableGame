@@ -1,6 +1,7 @@
 // Copyright © 2019 Heartable LLC. All rights reserved.
 
 import Foundation
+import Heartable
 import GameplayKit
 
 public class HRT2DSceneLoader {
@@ -26,6 +27,9 @@ public class HRT2DSceneLoader {
     /// Progress tracking scene loading. If nil, indicates no loading is taking place.
     public internal(set) var progress: Progress?
 
+    /// Completion handler to be called when loading is complete.
+    public internal(set) var loadCompletion: HRT2DSceneLoaderResultBlock?
+
     // MARK: - State
 
     /// Set to true to raise loading priority, and false to lower.
@@ -39,12 +43,18 @@ public class HRT2DSceneLoader {
 
     /// True iff a progress scene should be presented while loading the scene.
     public var needsProgressScene: Bool {
-        info.sceneType.shouldLoadAssets
-        && info.sceneType.assetsLoadingDependencies.contains { $0.shouldLoadAssets }
+        info.showsLoading &&
+        (
+            info.sceneType.shouldLoadAssets
+            || info.sceneType.assetsLoadingDependencies.contains { $0.shouldLoadAssets }
+        )
     }
 
     /// True iff the loader is in the finished state.
     public var isFinished: Bool { stateMachine.currentState is HRTLoad2DSceneFinished }
+
+    /// True iff the loader has been cancelled.
+    public internal(set) var isCancelled = false
 
     // MARK: - Init
 
@@ -56,17 +66,22 @@ public class HRT2DSceneLoader {
 
     // MARK: - Functionality
 
-    /// Load the scene.
-    ///
-    /// - Returns: The progress of the loading.
-    @discardableResult
-    public func load() -> Progress {
+    /// Loads the scene.
+    public func load(completion: HRT2DSceneLoaderResultBlock? = nil) {
+        guard !isCancelled else {
+            postFailure()
+            return
+        }
+
         if let progress = progress,
             !progress.isCancelled
         {
             // Loading is already in progress.
-            return progress
+            completion?(.ongoing)
+            return
         }
+
+        loadCompletion = completion
 
         switch stateMachine.currentState {
         case is HRTLoad2DSceneReady:
@@ -74,15 +89,13 @@ public class HRT2DSceneLoader {
             stateMachine.enter(HRTLoad2DSceneLoading.self)
         default:
             // TODO: Handle unexpected states.
-            break
+            postFailure()
         }
-
-        return progress ?? Progress(totalUnitCount: 0)
     }
 
     public func cancel() {
-        guard let loadingState = stateMachine.currentState as? HRTLoad2DSceneLoading else { return }
-        loadingState.cancel()
+        isCancelled = true
+        (stateMachine.currentState as? HRTLoad2DSceneLoading)?.cancel()
     }
 
     /// Releases loaded resources and brings the loader back to its initial state.
@@ -95,11 +108,13 @@ public class HRT2DSceneLoader {
     // MARK: - Utils
 
     func postSuccess() {
-        guard let scene = scene else { fatalError("Scene \(info.sceneType) failed to load.") }
+        guard let scene = scene else { fatalError("Scene \(info.sceneType) failed to load") }
+        loadCompletion?(.success(scene))
         delegate?.sceneLoaderDidLoad(self, scene: scene)
     }
 
     func postFailure() {
+        loadCompletion?(.failure)
         delegate?.sceneLoaderDidFail(self)
     }
 
@@ -107,6 +122,7 @@ public class HRT2DSceneLoader {
         scene = nil
         progress?.cancel()
         isRequested = false
+        isCancelled = false
     }
 
 }

@@ -13,14 +13,14 @@ public class HRT2DScript {
     public let openingScene: HRT2DSceneInfo
 
     /// Set of scenes that aren't automatically released from memory.
-    public let longLivedScenes: Set<HRT2DSceneInfo>
+    public let isLongLivedScenes: Set<HRT2DSceneInfo>
 
     // MARK: - Init
 
     public init(_ scenesGraph: [HRT2DSceneInfo: Set<HRT2DSceneInfo>], openingScene: HRT2DSceneInfo) {
         self.scenesGraph = scenesGraph
         self.openingScene = openingScene
-        longLivedScenes = Set<HRT2DSceneInfo>(scenesGraph.keys.filter { $0.longLived })
+        isLongLivedScenes = Set<HRT2DSceneInfo>(scenesGraph.keys.filter { $0.isLongLived })
     }
 
     // MARK: - Functionality
@@ -29,8 +29,9 @@ public class HRT2DScript {
     ///
     /// - Parameter sceneInfo: Info on the specified scene.
     /// - Returns: All possible next scenes.
-    public func scenes(after sceneInfo: HRT2DSceneInfo) -> Set<HRT2DSceneInfo> {
-        scenesGraph[sceneInfo] ?? []
+    public func scenes(after sceneInfo: HRT2DSceneInfo?) -> Set<HRT2DSceneInfo> {
+        guard let sceneInfo = sceneInfo else { return [openingScene] }
+        return scenesGraph[sceneInfo] ?? []
     }
 
     /// Get all scenes that are reachable from the specified scene.
@@ -38,7 +39,7 @@ public class HRT2DScript {
     /// - Parameter sceneInfo: Info on the specified scene.
     /// - Returns: All reachable scenes.
     public func scenes(reachableFrom sceneInfo: HRT2DSceneInfo) -> Set<HRT2DSceneInfo> {
-        longLivedScenes
+        isLongLivedScenes
             .union(scenes(after: sceneInfo))
             .union([sceneInfo])
     }

@@ -1,10 +1,9 @@
 // Copyright © 2019 Heartable LLC. All rights reserved.
 
 import Foundation
+import SpriteKit
 
 public protocol HRT2DNodeKey: CaseIterable, Hashable {
-
-    static var pathPrefix: String { get }
 
     init?(name: String)
 
@@ -12,11 +11,13 @@ public protocol HRT2DNodeKey: CaseIterable, Hashable {
 
     var path: String { get }
 
+    var parent: Self? { get }
+
+    func getOrCreate(in scene: HRT2DScene) -> SKNode
+
 }
 
 public extension HRT2DNodeKey {
-
-    static var pathPrefix: String { return "" }
 
     init?(name: String) {
         guard let key = Self.allCases.first(where: { $0.name == name }) else { return nil }
@@ -25,7 +26,23 @@ public extension HRT2DNodeKey {
 
     var name: String { String(describing: self) }
 
-    var path: String { "\(Self.pathPrefix)\(name)" }
+    var path: String {
+        guard let parent = parent else { return name }
+        return "\(parent.path)/\(name)"
+    }
+
+    var parent: Self? { nil }
+
+    func getOrCreate(in scene: HRT2DScene) -> SKNode {
+        guard let node = scene[path].first else {
+            let parentNode = parent?.getOrCreate(in: scene) ?? scene
+            let node = SKNode()
+            node.name = name
+            parentNode.addChild(node)
+            return node
+        }
+        return node
+    }
 
 }
 

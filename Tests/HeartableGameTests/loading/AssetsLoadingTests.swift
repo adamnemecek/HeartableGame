@@ -20,6 +20,7 @@ final class AssetsLoadingTests: XCTestCase {
             testLoad?()
             completion()
         }
+        class func unloadAssets() {}
         class func reset() {}
     }
 

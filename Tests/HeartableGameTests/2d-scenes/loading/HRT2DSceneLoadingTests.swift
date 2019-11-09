@@ -78,7 +78,10 @@ final class HRT2DSceneLoadingTests: XCTestCase {
             sceneKey: sceneKey,
             fileName: "",
             sceneType: sceneType,
-            longLived: false
+            preloads: true,
+            showsLoading: true,
+            isLongLived: false,
+            isHaptic: false
         )
     }
 

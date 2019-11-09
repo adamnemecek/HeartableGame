@@ -79,9 +79,11 @@ public class HRTLoad2DSceneLoading: HRTLoad2DSceneState {
         // Set up operation for scene initialization.
         let loadSceneOperation = HRTLoad2DSceneOperation(loader.info)
         loadSceneOperation.addSubscriber(HRTBlockSubscriber { operation, errors in
-            if !operation.isCancelled,
+            if !self.loader.isCancelled,
+                !operation.isCancelled,
                 errors.isEmpty,
-                let scene = loadSceneOperation.scene
+                let operation = operation as? HRTLoad2DSceneOperation,
+                let scene = operation.scene
             {
                 DispatchQueue.main.async {
                     self.loader.scene = scene
