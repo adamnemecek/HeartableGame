@@ -47,7 +47,7 @@ final class SKNode_PositionTests: XCTestCase {
         node1.align(to: point, in: node0)
         XCTAssertEqual(node1.position, CGPoint.zero)
 
-        node1.align(withSubtree: true, to: CGPoint(x: 100, y: 200), in: node0)
+        node1.align(to: CGPoint(x: 100, y: 200), in: node0, nodeFrameMode: .accumulated)
         XCTAssertEqual(node1.position, CGPoint.zero)
 
         node1.align(.bottom, to: point)
@@ -56,7 +56,7 @@ final class SKNode_PositionTests: XCTestCase {
         node1.align(.bottom, to: point, in: node0)
         XCTAssertEqual(node1.position, CGPoint.zero)
 
-        node1.align(.bottom, withSubtree: true, to: point, in: node0)
+        node1.align(.bottom, to: point, in: node0, nodeFrameMode: .accumulated)
         XCTAssertEqual(node1.position, CGPoint.zero)
 
         node1.align(to: .top)
@@ -78,21 +78,21 @@ final class SKNode_PositionTests: XCTestCase {
         // No local anchor
         node1.align(to: point)
         XCTAssertEqual(node1.position, point)
-        node1.align(to: point, constants: offset)
+        node1.align(to: point, offsets: offset)
         XCTAssertEqual(node1.position, point + offset)
         node1.align(to: point, in: node0.parent)
         XCTAssertEqual(node1.position, node0.position)
-        node1.align(to: point, in: node0.parent, constants: offset)
+        node1.align(to: point, in: node0.parent, offsets: offset)
         XCTAssertEqual(node1.position, node0.position + offset)
 
         // With center local anchor
         node1.align(.center, to: point)
         XCTAssertEqual(node1.position, point)
-        node1.align(.center, to: point, constants: offset)
+        node1.align(.center, to: point, offsets: offset)
         XCTAssertEqual(node1.position, point + offset)
         node1.align(.center, to: point, in: node0.parent)
         XCTAssertEqual(node1.position, node0.position)
-        node1.align(.center, to: point, in: node0.parent, constants: offset)
+        node1.align(.center, to: point, in: node0.parent, offsets: offset)
         XCTAssertEqual(node1.position, node0.position + offset)
 
         // With different anchors
@@ -132,21 +132,21 @@ final class SKNode_PositionTests: XCTestCase {
         // No local anchor
         node1.align(to: .center)
         XCTAssertEqual(node1.position, center)
-        node1.align(to: .center, constants: centerOffset)
+        node1.align(to: .center, offsets: centerOffset)
         XCTAssertEqual(node1.position, center + centerOffset)
         node1.align(to: .center, of: node0)
         XCTAssertEqual(node1.position, node0.position)
-        node1.align(to: .center, of: node0, constants: centerOffset)
+        node1.align(to: .center, of: node0, offsets: centerOffset)
         XCTAssertEqual(node1.position, node0.position + centerOffset)
 
         // With center local anchor
         node1.align(.center, to: .center)
         XCTAssertEqual(node1.position, center)
-        node1.align(.center, to: .center, constants: centerOffset)
+        node1.align(.center, to: .center, offsets: centerOffset)
         XCTAssertEqual(node1.position, center + centerOffset)
         node1.align(.center, to: .center, of: node0)
         XCTAssertEqual(node1.position, node0.position)
-        node1.align(.center, to: .center, of: node0, constants: centerOffset)
+        node1.align(.center, to: .center, of: node0, offsets: centerOffset)
         XCTAssertEqual(node1.position, node0.position + centerOffset)
 
         // With different anchors
@@ -184,21 +184,21 @@ final class SKNode_PositionTests: XCTestCase {
         // No local anchor
         node1.align(to: .topRight)
         XCTAssertEqual(node1.position, topRight)
-        node1.align(to: .topRight, constants: cornerOffset)
+        node1.align(to: .topRight, offsets: cornerOffset)
         XCTAssertEqual(node1.position, topRight + cornerOffset)
         node1.align(to: .topRight, of: node0)
         XCTAssertEqual(node1.position, node0.position + anchorOffset)
-        node1.align(to: .topRight, of: node0, constants: cornerOffset)
+        node1.align(to: .topRight, of: node0, offsets: cornerOffset)
         XCTAssertEqual(node1.position, node0.position + cornerOffset + anchorOffset)
 
         // With top right local anchor
         node1.align(.topRight, to: .topRight)
         XCTAssertEqual(node1.position, topRight + negAnchorOffset)
-        node1.align(.topRight, to: .topRight, constants: cornerOffset)
+        node1.align(.topRight, to: .topRight, offsets: cornerOffset)
         XCTAssertEqual(node1.position, topRight + cornerOffset + negAnchorOffset)
         node1.align(.topRight, to: .topRight, of: node0)
         XCTAssertEqual(node1.position, node0.position)
-        node1.align(.topRight, to: .topRight, of: node0, constants: cornerOffset)
+        node1.align(.topRight, to: .topRight, of: node0, offsets: cornerOffset)
         XCTAssertEqual(node1.position, node0.position + cornerOffset)
 
         // With different anchors

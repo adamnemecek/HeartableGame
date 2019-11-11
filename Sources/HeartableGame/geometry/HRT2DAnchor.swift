@@ -1,6 +1,7 @@
 // Copyright © 2019 Heartable LLC. All rights reserved.
 
 import CoreGraphics
+import SpriteKit
 
 public enum HRT2DPositionAnchor {
     case center
@@ -12,6 +13,7 @@ public enum HRT2DPositionAnchor {
     case bottomLeft
     case left
     case topLeft
+    case baseline
 
     // MARK: - Props
 
@@ -26,6 +28,9 @@ public enum HRT2DPositionAnchor {
         case .bottomLeft: return CGPoint(x: 0, y: 0)
         case .left: return CGPoint(x: 0, y: 0.5)
         case .topLeft: return CGPoint(x: 0, y: 1)
+
+        // Since the baseline point varies, simply return a placeholder unit point.
+        case .baseline: return CGPoint(x: 0.5, y: 0.5)
         }
     }
 
@@ -72,6 +77,18 @@ public enum HRT2DPositionAnchor {
     }
 
     // MARK: - Functionality
+
+    public func unitPoint(in node: SKNode, frameMode: HRT2DFrameMode = .singular) -> CGPoint {
+        switch self {
+        case .baseline:
+            if let node = node as? HRT2DBaselined {
+                return node.baselineUnitPoint(frameMode: frameMode)
+            } else {
+                return unitPoint
+            }
+        default: return unitPoint
+        }
+    }
 
     public func unitDistance(from dest: HRT2DPositionAnchor) -> CGPoint {
         let x: CGFloat

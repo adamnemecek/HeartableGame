@@ -1,10 +1,13 @@
 // Copyright © 2019 Heartable LLC. All rights reserved.
 
+import CoreHaptics
 import GameplayKit
 import Heartable
 import SpriteKit
 
 open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoading {
+
+    // MARK: - Config
 
     // MARK: - Type props
 
@@ -92,10 +95,7 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
             .compactMap { $0 as? HRTGameEntity }
             .forEach { $0.didMove(to: view) }
 
-        if isHaptic {
-            hapticEngine = UIImpactFeedbackGenerator()
-            hapticEngine?.prepare()
-        }
+        if isHaptic { HRTUIHaptics.setUp() }
 
         moveDelegate?.sceneDidMove(self)
     }
@@ -107,7 +107,7 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
             .compactMap { $0 as? HRTGameEntity }
             .forEach { $0.willMove(from: view) }
 
-        if isHaptic { hapticEngine = nil }
+        if isHaptic { HRTUIHaptics.tearDown() }
 
         moveDelegate?.sceneWillMove(self)
     }
