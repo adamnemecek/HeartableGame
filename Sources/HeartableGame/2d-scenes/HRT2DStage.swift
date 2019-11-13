@@ -13,14 +13,28 @@ final public class HRT2DStage {
 
     // MARK: - Props
 
+    /// Content authority.
+    public let script: HRT2DScript
+
     /// The presenting view.
     public let view: SKView
 
     /// Player control input.
-    public let input: HRT2DGameInput?
+    public let input: HRT2DGameInput
 
-    /// Content authority.
-    public let script: HRT2DScript
+    #if DEBUG
+    /// Debug UI.
+    public var debugInputSource: HRT2DGameInputSource? {
+        didSet {
+            if let debugInputSource = debugInputSource {
+                input.addSecondarySource(debugInputSource)
+            }
+            if let oldDebugInputSource = oldValue {
+                input.removeSecondarySource(oldDebugInputSource)
+            }
+        }
+    }
+    #endif
 
     // MARK: Loading
 
@@ -44,8 +58,8 @@ final public class HRT2DStage {
 
     // MARK: State
 
-    /// Scene currently presented.
-    var currSceneInfo: HRT2DSceneInfo?
+    /// Scenes that have been presented.
+    var history = [HRT2DSceneInfo]()
 
     /// Observation token for tracking loading progress.
     var progressObservation: NSKeyValueObservation?
@@ -63,7 +77,7 @@ final public class HRT2DStage {
     public init(
         _ script: HRT2DScript,
         view: SKView,
-        input: HRT2DGameInput? = nil,
+        input: HRT2DGameInput = HRT2DGameInput(),
         progressScene: HRT2DProgressRendering
     ) {
         self.script = script
@@ -81,7 +95,7 @@ final public class HRT2DStage {
     // MARK: - Functionality
 
     public var nextScenes: Set<HRT2DSceneInfo> {
-        script.scenes(after: currSceneInfo)
+        script.scenes(after: history.last)
     }
 
     // MARK: Preload
@@ -139,7 +153,7 @@ final public class HRT2DStage {
             return
         }
 
-        currSceneInfo = loader.info
+        history.append(loader.info)
         scene.stage = self
 
         DispatchQueue.main.async {
@@ -194,16 +208,16 @@ final public class HRT2DStage {
     }
 
     func present(_ scene: HRT2DScene, transition: SKTransition?) {
+        let present: HRTBlock = {
+            self.input.delegate = scene
+            self.view.presentScene(scene, transition: transition)
+        }
         if let prevScene = view.scene as? HRT2DScene {
             DispatchQueue.main.async {
-                prevScene.prepareToMove(from: self.view) {
-                    self.view.presentScene(scene, transition: transition)
-                }
+                prevScene.prepareToMove(from: self.view) { present() }
             }
         } else {
-            DispatchQueue.main.async {
-                self.view.presentScene(scene, transition: transition)
-            }
+            DispatchQueue.main.async { present() }
         }
     }
 

@@ -7,9 +7,15 @@ public protocol HRT2DGameInputSource: AnyObject {
 
     var gameDelegate: HRT2DGameInputSourceGameDelegate? { get set }
 
-    var unitDelegates: [String: HRT2DGameInputSourceUnitDelegate] { get set }
+    var unitDelegate: HRT2DGameInputSourceUnitDelegate? { get set }
 
     /// Resets the control state.
     func reset()
+
+}
+
+public extension HRT2DGameInputSource {
+
+    func reset() {}
 
 }

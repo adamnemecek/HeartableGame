@@ -11,21 +11,29 @@ open class HRT2DOverlay {
 
     open class var overlayNodeName: String { "overlayNode" }
 
+    #if !os(macOS)
+    open class var safeAreaNodeName: String { "safeAreaNode" }
+    #endif
+
     // MARK: - Props
 
     /// The overlay's background, which is sized to fill the view.
     let rootNode: HRT2DViewGuide
 
+    #if !os(macOS)
+    let safeAreaNode: HRT2DViewGuide
+    #endif
+
     /// The overlay's content.
-    let contentNode: SKSpriteNode
+    let contentNode: SKNode
+
+    /// The handler that lays out the content node, given the root node.
+    var layoutContent: HRT2DNodeBlock?
+
+    /// The scale mode of the overlay's content.
+    var scaleMode: HRTScaleMode?
 
     // MARK: - Config
-
-    /// Work to be done on `rootNode` before entering.
-    open var preEntrance: ((SKNode) -> Void)?
-
-    /// Work to be done on `rootNode` after exiting.
-    open var postExit: ((SKNode) -> Void)?
 
     /// Action run by `rootNode` upon entrance.
     open var entranceAction: SKAction?
@@ -45,44 +53,85 @@ open class HRT2DOverlay {
 
     /// Initializes a scene overlay.
     ///
-    /// - Parameter fileName: The name of the file containing the overlay's scene.
-    /// - Parameter overlayName: The name of the overlay node.
-    public init?(fileNamed fileName: String, overlayNamed overlayName: String? = nil) {
+    /// - Important: The scene must contain a child sprite node with the specified name.
+    ///
+    /// - Parameters:
+    ///     - fileName: The name of the file containing the overlay's scene.
+    ///     - overlayName: The name of the overlay node.
+    ///     - layoutContent: The handler that lays out the content node, given the root node.
+    ///     - scaleMode: The scale mode to use for the overlay node.
+    public init?(
+        fileNamed fileName: String,
+        overlayNamed overlayName: String? = nil,
+        layoutContent: HRT2DNodeBlock? = nil,
+        scaleMode: HRTScaleMode? = nil
+    ) {
         let overlayName = overlayName ?? Self.overlayNodeName
         guard let overlayScene = SKScene(fileNamed: fileName),
             let overlayNode = overlayScene.childNode(withName: overlayName) as? SKSpriteNode
         else { return nil }
 
+        self.layoutContent = layoutContent
+        self.scaleMode = scaleMode
+
         // Extract the background from the overlay's content so it can be scaled separately from the
         // content.
-        rootNode = HRT2DViewGuide(color: overlayNode.color, size: overlayNode.size)
+        rootNode = HRT2DViewGuide(color: overlayNode.color, size: .zero)
 
         #if !os(macOS)
         rootNode.insetsToSafeArea = false
+
+        safeAreaNode = HRT2DViewGuide()
+        safeAreaNode.insetsToSafeArea = true
         #endif
 
         // Move the content to the new background node.
+        overlayNode.position = .zero
+        overlayNode.color = .clear
         contentNode = overlayNode
         contentNode.removeFromParent()
-        contentNode.position = .zero
-        contentNode.color = .clear
         rootNode.addChild(contentNode)
     }
+
+    #if !os(macOS)
+
+    public init(
+        _ contentNode: SKNode,
+        color: UIColor = .clear,
+        layoutContent: HRT2DNodeBlock? = nil,
+        scaleMode: HRTScaleMode? = nil
+    ) {
+        self.contentNode = contentNode
+        self.layoutContent = layoutContent
+        self.scaleMode = scaleMode
+
+        rootNode = HRT2DViewGuide(color: color, size: .zero)
+        rootNode.insetsToSafeArea = false
+
+        safeAreaNode = HRT2DViewGuide()
+        safeAreaNode.name = Self.safeAreaNodeName
+        safeAreaNode.insetsToSafeArea = true
+        safeAreaNode.removeFromParent()
+        rootNode.addChild(safeAreaNode)
+
+        self.contentNode.position = .zero
+        self.contentNode.removeFromParent()
+        rootNode.addChild(self.contentNode)
+    }
+
+    #endif
 
     // MARK: - Functionality
 
     open func attach(
         to parent: SKCameraNode,
-        mode: HRTScaleMode = .aspectFit,
         zPosition: CGFloat? = nil,
         _ completion: HRTBlock? = nil
     ) {
-        preEntrance?(rootNode)
-
         rootNode.zPosition = zPosition ?? parent.zPosition
         rootNode.removeFromParent()
         parent.addChild(rootNode)
-        rescale(mode)
+        rescale()
 
         runEntranceActionIfNeeded() { completion?() }
     }
@@ -90,21 +139,25 @@ open class HRT2DOverlay {
     open func detach(_ completion: HRTBlock? = nil) {
         runExitActionIfNeeded() {
             self.rootNode.removeFromParent()
-            self.postExit?(self.rootNode)
             completion?()
         }
     }
 
-    open func rescale(_ mode: HRTScaleMode = .aspectFit) {
+    open func rescale() {
         guard let scene = rootNode.scene,
             let view = scene.view
         else { return }
 
-        let scaleFactors = nativeSize.scaleFactors(to: view.size(in: scene), mode: mode)
-        contentNode.xScale = scaleFactors.width
-        contentNode.yScale = scaleFactors.height
-
         rootNode.layout()
+        safeAreaNode.layout()
+
+        if let layoutContent = layoutContent {
+            layoutContent(rootNode)
+        } else if let scaleMode = scaleMode {
+            let scaleFactors = nativeSize.scaleFactors(to: view.size(in: scene), mode: scaleMode)
+            contentNode.xScale = scaleFactors.width
+            contentNode.yScale = scaleFactors.height
+        }
     }
 
     // MARK: - Utils
@@ -132,6 +185,6 @@ open class HRT2DOverlay {
 extension HRT2DOverlay: HRTNativelySized {
 
     /// The original content size.
-    open var nativeSize: CGSize { contentNode.calculateAccumulatedFrame().size }
+    open var nativeSize: CGSize { contentNode.frame(.accumulated).size }
 
 }

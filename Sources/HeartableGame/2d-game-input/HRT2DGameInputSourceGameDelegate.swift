@@ -13,6 +13,8 @@ public protocol HRT2DGameInputSourceGameDelegate: AnyObject {
 
     #if DEBUG
     func inputSourceDidToggleDebugInfo(_ inputSource: HRT2DGameInputSource)
+    func inputSourceDidGoBack(_ inputSource: HRT2DGameInputSource)
+    func inputSourceDidSkip(_ inputSource: HRT2DGameInputSource)
     func inputSourceDidTriggerWin(_ inputSource: HRT2DGameInputSource)
     func inputSourceDidTriggerLoss(_ inputSource: HRT2DGameInputSource)
     #endif

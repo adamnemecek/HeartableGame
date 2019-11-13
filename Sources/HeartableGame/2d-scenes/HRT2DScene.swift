@@ -5,7 +5,9 @@ import GameplayKit
 import Heartable
 import SpriteKit
 
-open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoading {
+open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoading,
+    HRT2DGameInputDelegate, HRT2DGameInputSourceGameDelegate
+{
 
     // MARK: - Config
 
@@ -34,7 +36,7 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
     open weak var moveDelegate: HRT2DSceneMoveDelegate?
 
     open weak var stage: HRT2DStage? {
-        didSet { stage?.input?.delegate = self }
+        didSet { stage?.input.delegate = self }
     }
 
     open var entities = Set<GKEntity>()
@@ -87,15 +89,19 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
     open override func didMove(to view: SKView) {
         super.didMove(to: view)
 
+        // Layout children.
         rescale()
 
-        curtainStateMachine.enter(HRT2DSceneOpening.self)
-
+        // Propagate lifecycle event.
         entities
             .compactMap { $0 as? HRTGameEntity }
             .forEach { $0.didMove(to: view) }
 
+        // Set up scene aspects.
         if isHaptic { HRTUIHaptics.setUp() }
+
+        // Start curtain state machine.
+        curtainStateMachine.enter(HRT2DSceneOpening.self)
 
         moveDelegate?.sceneDidMove(self)
     }
@@ -103,10 +109,12 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
     open override func willMove(from view: SKView) {
         super.willMove(from: view)
 
+        // Propagate lifecycle event.
         entities
             .compactMap { $0 as? HRTGameEntity }
             .forEach { $0.willMove(from: view) }
 
+        // Tear down scene aspects.
         if isHaptic { HRTUIHaptics.tearDown() }
 
         moveDelegate?.sceneWillMove(self)
@@ -208,21 +216,13 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
         }
     }
 
-}
-
-// MARK: - HRT2DGameInputDelegate conformance
-
-extension HRT2DScene: HRT2DGameInputDelegate {
+    // MARK: - HRT2DGameInputDelegate conformance
 
     open func inputDidUpdateSources(_ input: HRT2DGameInput) {
         input.sources.forEach { $0.gameDelegate = self }
     }
 
-}
-
-// MARK: - HRT2DGameInputSourceGameDelegate conformance
-
-extension HRT2DScene: HRT2DGameInputSourceGameDelegate {
+    // MARK: - HRT2DGameInputSourceGameDelegate conformance
 
     open func inputSource(
         _ inputSource: HRT2DGameInputSource,
@@ -236,6 +236,10 @@ extension HRT2DScene: HRT2DGameInputSourceGameDelegate {
     #if DEBUG
 
     open func inputSourceDidToggleDebugInfo(_ inputSource: HRT2DGameInputSource) {}
+
+    open func inputSourceDidGoBack(_ inputSource: HRT2DGameInputSource) {}
+
+    open func inputSourceDidSkip(_ inputSource: HRT2DGameInputSource) {}
 
     open func inputSourceDidTriggerWin(_ inputSource: HRT2DGameInputSource) {}
 

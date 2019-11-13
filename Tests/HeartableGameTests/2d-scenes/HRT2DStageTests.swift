@@ -136,7 +136,7 @@ final class HRT2DStageTests: XCTestCase {
 
     class InputSourceA: HRT2DGameInputSource {
         weak var gameDelegate: HRT2DGameInputSourceGameDelegate?
-        var unitDelegates = [String: HRT2DGameInputSourceUnitDelegate]()
+        weak var unitDelegate: HRT2DGameInputSourceUnitDelegate?
         func reset() {}
     }
 
@@ -275,7 +275,7 @@ final class HRT2DStageTests: XCTestCase {
     }
 
     func testUnload() {
-        stage.currSceneInfo = sceneBInfo
+        stage.history = [sceneBInfo]
 
         let exp1 = expectation(description: "SceneA is unloaded.")
         SceneA.unload = { exp1.fulfill() }
