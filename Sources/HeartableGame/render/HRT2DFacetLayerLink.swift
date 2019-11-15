@@ -1,6 +1,6 @@
 // Copyright © 2019 Heartable LLC. All rights reserved.
 
-import SpriteKit
+import Foundation
 
 public protocol HRT2DFacetLayerLink {
 
