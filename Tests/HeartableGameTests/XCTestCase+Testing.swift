@@ -1,6 +1,6 @@
 // Copyright © 2019 Heartable LLC. All rights reserved.
 
-@testable import Heartable
+import Heartable
 import XCTest
 
 public extension XCTestCase {
