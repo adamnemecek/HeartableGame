@@ -67,10 +67,14 @@ public class HRT2DSceneLoader {
     // MARK: - Functionality
 
     /// Loads the scene.
-    public func load(completion: HRT2DSceneLoaderResultBlock? = nil) {
+    ///
+    /// - Parameter completion: Completion handler for when the scene is loaded.
+    /// - Returns: The progress object tracking this loading operation.
+    @discardableResult
+    public func load(completion: HRT2DSceneLoaderResultBlock? = nil) -> Progress? {
         guard !isCancelled else {
             postFailure()
-            return
+            return nil
         }
 
         if let progress = progress,
@@ -78,7 +82,7 @@ public class HRT2DSceneLoader {
         {
             // Loading is already in progress.
             completion?(.ongoing)
-            return
+            return progress
         }
 
         loadCompletion = completion
@@ -87,9 +91,11 @@ public class HRT2DSceneLoader {
         case is HRTLoad2DSceneReady:
             progress = Progress(totalUnitCount: 1)
             stateMachine.enter(HRTLoad2DSceneLoading.self)
+            return progress
         default:
             // TODO: Handle unexpected states.
             postFailure()
+            return nil
         }
     }
 

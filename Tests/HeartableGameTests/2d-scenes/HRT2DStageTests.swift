@@ -242,7 +242,7 @@ final class HRT2DStageTests: XCTestCase {
             exp4.fulfill()
         }
 
-        stage.loadAndPresentScene(sceneDInfo)
+        stage.loadAndVisitScene(sceneDInfo)
 
         let exps = [exp1, exp2, exp3, exp4]
         XCTWaiter.wait(for: exps, timeout: 1.5).process()
@@ -267,7 +267,7 @@ final class HRT2DStageTests: XCTestCase {
         exp3.isInverted = true
         Self.moved1 = { exp3.fulfill() }
 
-        stage.loadAndPresentScene(sceneDInfo)
+        stage.loadAndVisitScene(sceneDInfo)
 
         XCTWaiter.wait(for: [exp1, exp2, exp3], timeout: 1.5).process {
             XCTAssert(self.view1.scene is ProgressSceneA)
@@ -305,7 +305,7 @@ final class HRT2DStageTests: XCTestCase {
         let exp8 = expectation(description: "DepD is unloaded.")
         DepD.unload = { exp8.fulfill() }
 
-        stage.releaseUnneededAssets(for: sceneBInfo)
+        stage.unloadUnneededAssets(for: sceneBInfo)
 
         let exps = [exp1, exp2, exp3, exp4, exp5, exp6, exp7, exp8]
         XCTWaiter.wait(for: exps, timeout: 1).process()

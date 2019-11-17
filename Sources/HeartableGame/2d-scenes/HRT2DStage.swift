@@ -61,6 +61,9 @@ final public class HRT2DStage {
     /// Scenes that have been presented.
     var history = [HRT2DSceneInfo]()
 
+    /// A scene's loading progress.
+    var progress: Progress?
+
     /// Observation token for tracking loading progress.
     var progressObservation: NSKeyValueObservation?
 
@@ -98,7 +101,7 @@ final public class HRT2DStage {
         script.scenes(after: history.last)
     }
 
-    // MARK: Preload
+    // MARK: Preload scenes
 
     public func preloadNextScenes() {
         nextScenes.forEach { preloadScene($0) }
@@ -111,28 +114,47 @@ final public class HRT2DStage {
         }
 
         guard sceneInfo.preloads else { return }
-
         enqueueLoadingTask(loader, qualityOfService: .utility, completion: completion)
     }
 
-    // MARK: Load and present
+    // MARK: Load and visit scenes
 
-    public func loadAndPresentNextScene(transition: SKTransition? = nil) {
+    public func loadAndVisitNextScene(transition: SKTransition? = nil) {
         guard let next = nextScenes.first else { return }
-        loadAndPresentScene(next, transition: transition)
+        loadAndVisitScene(next, transition: transition)
     }
 
-    public func loadAndPresentScene(_ sceneInfo: HRT2DSceneInfo, transition: SKTransition? = nil) {
+    public func loadAndVisitPrevScene(transition: SKTransition? = nil) {
+        guard history.count >= 2 else { return }
+        loadAndVisitScene(history[history.count - 2], revisiting: true, transition: transition)
+    }
+
+    public func loadAndVisitScene(
+        _ sceneInfo: HRT2DSceneInfo,
+        revisiting: Bool = false,
+        transition: SKTransition? = nil
+    ) {
         guard let loader = sceneLoaders[sceneInfo] else {
             assertionFailure("not a staged scene: \(sceneInfo)")
             return
         }
 
+        if revisiting,
+            // If revisiting a scene, get its most recent occurence.
+            let index = history.lastIndex(of: sceneInfo)
+        {
+            // Clear out history from this scene onwards, including this scene itself (which will be
+            // added to history again upon its presentation).
+            history.removeLast(history.count - index)
+        }
+
         if loader.isFinished {
-            presentScene(loader, transition: transition)
+            visitScene(loader, transition: transition)
         } else {
+            progress = Progress(totalUnitCount: 1)
+
             loader.isRequested = true
-            enqueueLoadingTask(loader, qualityOfService: .userInitiated)
+            enqueueLoadingTask(loader, progress: progress, qualityOfService: .userInitiated)
             nextPresentTransition = transition
 
             if loader.needsProgressScene {
@@ -145,9 +167,9 @@ final public class HRT2DStage {
 
     // MARK: - Utils
 
-    // MARK: Present
+    // MARK: Visit scenes
 
-    func presentScene(_ loader: HRT2DSceneLoader, transition: SKTransition? = nil) {
+    func visitScene(_ loader: HRT2DSceneLoader, transition: SKTransition? = nil) {
         guard let scene = loader.scene else {
             assertionFailure("scene is not loaded for presentation")
             return
@@ -166,6 +188,8 @@ final public class HRT2DStage {
         }
     }
 
+    // MARK: Present scenes
+
     func presentProgressScene(_ loader: HRT2DSceneLoader) {
         guard progressObservation == nil,
             loader.isRequested
@@ -178,7 +202,7 @@ final public class HRT2DStage {
         DispatchQueue.main.async {
             self.present(self.progressScene, transition: self.progressPresentTransition)
 
-            self.progressObservation = loader.progress?.observe(
+            self.progressObservation = self.progress?.observe(
                 \.fractionCompleted,
                 options: [.initial, .new]
             ) { progress, _ in
@@ -221,15 +245,18 @@ final public class HRT2DStage {
         }
     }
 
-    // MARK: Loading
+    // MARK: Load and unload tasks
 
     func enqueueLoadingTask(
         _ loader: HRT2DSceneLoader,
+        progress: Progress? = nil,
         qualityOfService: QualityOfService? = nil,
         completion: HRTSimpleResultBlock? = nil
     ) {
         let operation = HRTBlockOperation { completion in
-            loader.load() { _ in completion() }
+            if let loaderProgress = loader.load(completion: { _ in completion() }) {
+                progress?.addChild(loaderProgress, withPendingUnitCount: 1)
+            }
         }
         if let qualityOfService = qualityOfService {
             operation.qualityOfService = qualityOfService
@@ -242,10 +269,10 @@ final public class HRT2DStage {
     }
 
     func enqueueUnloadingTask(for sceneInfo: HRT2DSceneInfo) {
-        loadQueue.addBarrierBlock { self.releaseUnneededAssets(for: sceneInfo) }
+        loadQueue.addBarrierBlock { self.unloadUnneededAssets(for: sceneInfo) }
     }
 
-    func releaseUnneededAssets(for sceneInfo: HRT2DSceneInfo) {
+    func unloadUnneededAssets(for sceneInfo: HRT2DSceneInfo) {
         // Create list of assets to keep alive (i.e. current and reachable scenes, and their
         // respective dependencies).
         let reachableScenes = script.scenes(reachableFrom: sceneInfo)
@@ -276,15 +303,16 @@ extension HRT2DStage: HRT2DSceneLoaderDelegate {
         guard sceneLoader.isRequested else { return }
         DispatchQueue.main.async {
             self.progressScene.wrapUp {
-                self.presentScene(sceneLoader, transition: self.nextPresentTransition)
+                self.visitScene(sceneLoader, transition: self.nextPresentTransition)
                 self.nextPresentTransition = nil
             }
         }
     }
 
     public func sceneLoaderDidFail(_ sceneLoader: HRT2DSceneLoader) {
-        guard progressScene.targetSceneInfo == sceneLoader.info else { return }
-        DispatchQueue.main.async { self.progressScene.reportFailure() }
+        if progressScene.targetSceneInfo == sceneLoader.info {
+            DispatchQueue.main.async { self.progressScene.reportFailure() }
+        }
     }
 
 }
