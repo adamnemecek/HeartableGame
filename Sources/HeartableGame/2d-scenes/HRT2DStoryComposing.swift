@@ -46,8 +46,10 @@ public extension HRT2DStoryComposing {
                 sceneType: Self(rawValue: $0.sceneKey)!.sceneType,
                 preloads: $0.preloads ?? true,
                 showsLoading: $0.showsLoading ?? true,
+                showsHUD: $0.showsHUD ?? true,
                 isLongLived: $0.isLongLived ?? false,
-                isHaptic: $0.isHaptic ?? false
+                isHaptic: $0.isHaptic ?? true,
+                themeMode: HRTThemeMode(rawValue: $0.themeMode ?? "light") ?? .light
             )
         ) }
         let stringKeyedScenes = Dictionary(stringKeyedScenesEntries) { _, last in last }

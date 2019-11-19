@@ -9,8 +9,6 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
     HRT2DGameInputDelegate, HRT2DGameInputSourceGameDelegate
 {
 
-    // MARK: - Config
-
     // MARK: - Type props
 
     // MARK: Assets
@@ -45,21 +43,23 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
 
     open var overlay: HRT2DOverlay? {
         didSet {
-            if let camera = camera { overlay?.attach(to: camera, zPosition: 0) }
+            if let camera = camera { overlay?.attach(to: camera, zPosition: 999998) }
             oldValue?.detach()
         }
     }
 
     open var curtain: HRT2DCurtain? {
         didSet {
-            if let camera = camera { curtain?.attach(to: camera, zPosition: 1) }
+            if let camera = camera { curtain?.attach(to: camera, zPosition: 999999) }
             oldValue?.detach()
         }
     }
 
     // MARK: Config
 
+    open var showsHUD = true
     open var isHaptic = false
+    open var themeMode: HRTThemeMode = .light
 
     // MARK: State
 
@@ -73,10 +73,6 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
     open var exitCompletion: HRTBlock?
 
     open var lastUpdateTime: TimeInterval = 0
-
-    // MARK: Haptics
-
-    open var hapticEngine: UIImpactFeedbackGenerator?
 
     // MARK: - Lifecycle
 
@@ -204,7 +200,9 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
     }
 
     open func config(_ info: HRT2DSceneInfo) {
+        showsHUD = info.showsHUD
         isHaptic = info.isHaptic
+        themeMode = info.themeMode
     }
 
     open func prepareToMove(from view: SKView, completion: HRTBlock? = nil) {

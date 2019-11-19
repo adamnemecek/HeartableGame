@@ -80,8 +80,10 @@ final class HRT2DSceneLoadingTests: XCTestCase {
             sceneType: sceneType,
             preloads: true,
             showsLoading: true,
+            showsHUD: true,
             isLongLived: false,
-            isHaptic: false
+            isHaptic: false,
+            themeMode: .light
         )
     }
 

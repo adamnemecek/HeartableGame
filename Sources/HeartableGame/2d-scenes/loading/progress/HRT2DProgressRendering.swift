@@ -20,7 +20,7 @@ public protocol HRT2DProgressRendering: HRT2DScene {
 
     func wrapUp(_ completion: @escaping HRTBlock)
     func reset()
-    func reportProgress(_ progress: Progress, completion: HRTBlock?)
+    func reportProgress(_ progress: Progress, animated: Bool, completion: HRTBlock?)
     func reportFailure()
 
 }
@@ -45,11 +45,11 @@ public extension HRT2DProgressRendering {
         progressLabel?.text = nil
     }
 
-    func reportProgress(_ progress: Progress, completion: HRTBlock? = nil) {
+    func reportProgress(_ progress: Progress, animated: Bool = true, completion: HRTBlock? = nil) {
         progressLabel?.text = progress.localizedDescription
         progressVisual?.updateProgress(
             progress.fractionCompleted,
-            animated: true,
+            animated: animated,
             completion: completion
         )
     }

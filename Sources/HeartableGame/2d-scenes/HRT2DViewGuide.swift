@@ -40,33 +40,17 @@ open class HRT2DViewGuide: SKSpriteNode {
 extension HRT2DViewGuide: HRTLayoutCapable {
 
     public func layout() {
-        guard let parent = parent,
-            let scene = scene,
-            let view = scene.view
-        else { return }
-
-        // Find the view size in scene-scale.
-        let viewSize = view.size(in: scene)
-        let halfWidth = viewSize.width / 2
-        let halfHeight = viewSize.height / 2
-        let center = CGPoint(x: parent.frame.width / 2, y: parent.frame.height / 2)
-        let minPoint = CGPoint(x: center.x - halfWidth, y: center.y - halfHeight)
-        var scaledRect = CGRect(origin: minPoint, size: viewSize)
-
         #if !os(macOS)
-
-        // Adjust for safe area.
-        if insetsToSafeArea {
-            scaledRect = scaledRect.inset(by: view.safeAreaInsets)
-        }
-
+        guard let viewGuide = viewGuide(
+            insetsToSafeArea ? .safeAreaLimited : .full,
+            margins: margins
+        ) else { return }
+        #else
+        guard let viewGuide = viewGuide(margins: margins) else { return }
         #endif
 
-        // Adjust for margins.
-        scaledRect = scaledRect.inset(by: margins)
-
-        size = scaledRect.size
-        _frame = scaledRect
+        size = viewGuide.size
+        _frame = viewGuide
     }
 
 }

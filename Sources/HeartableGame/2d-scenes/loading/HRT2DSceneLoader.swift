@@ -99,6 +99,45 @@ public class HRT2DSceneLoader {
         }
     }
 
+    /// Returns a block operation that loads the scene and a progress object tracking the operation.
+    ///
+    /// - Returns: A tuple of the block operation object and the progress object.
+    @discardableResult
+    public func loadTask() -> (operation: HRTBlockOperation?, progress: Progress)? {
+        guard !isCancelled else {
+            postFailure()
+            return nil
+        }
+
+        if let progress = progress {
+            // Loading is already in progress.
+            return (operation: nil, progress: progress)
+        }
+
+        switch stateMachine.currentState {
+        case is HRTLoad2DSceneReady:
+            let progress = Progress(totalUnitCount: 1)
+            self.progress = progress
+
+            let blockOperation = HRTBlockOperation { [weak self] completion in
+                DispatchQueue.main.async {
+                    guard let self = self else {
+                        completion()
+                        return
+                    }
+                    self.loadCompletion = { _ in completion() }
+                    self.stateMachine.enter(HRTLoad2DSceneLoading.self)
+                }
+            }
+
+            return (operation: blockOperation, progress: progress)
+        default:
+            // TODO: Handle unexpected states.
+            postFailure()
+            return nil
+        }
+    }
+
     public func cancel() {
         isCancelled = true
         (stateMachine.currentState as? HRTLoad2DSceneLoading)?.cancel()
@@ -126,7 +165,7 @@ public class HRT2DSceneLoader {
 
     func cleanUp() {
         scene = nil
-        progress?.cancel()
+        progress = nil
         isRequested = false
         isCancelled = false
     }

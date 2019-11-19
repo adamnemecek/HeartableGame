@@ -5,6 +5,8 @@ import SpriteKit
 
 public extension SKNode {
 
+    // MARK: - Match node position to guide point or anchor
+
     /// Calculates the position (in `node`'s parent's coordinate space) of `point` (which is in
     /// `guide`'s coordinate space.
     ///
@@ -73,6 +75,8 @@ public extension SKNode {
         // Apply offsets and return the final position.
         return convertedTargetAnchorPosition + offsets
     }
+
+    // MARK: - Match node anchor to guide point or anchor
 
     /// Calculates the position (in `node`'s parent's coordinate space) that, if assigned to node,
     /// would place the specified `nodeAnchor` onto the specified `point`.
@@ -171,6 +175,8 @@ public extension SKNode {
         return node.position + anchorPositionsOffset
     }
 
+    // MARK: - Align node anchor to guide point
+
     /// Aligns this node to `guide`, based on the specified `nodeAnchor` and `point`.
     ///
     /// - Parameters:
@@ -179,7 +185,7 @@ public extension SKNode {
     ///     - point: The target point in `guide`'s coordinate space.
     ///     - guide: The target node. If nil, defaults to this node's parent.
     ///     - offsets: Offsets to apply to the position.
-    ///     - nodeFrameMode: Frame mode of `node`.
+    ///     - nodeFrameMode: Frame mode of this node.
     func align(
         _ nodeAnchor: HRT2DPositionAnchor? = nil,
         to point: CGPoint,
@@ -210,6 +216,8 @@ public extension SKNode {
         if let position = position { self.position = position }
     }
 
+    // MARK: - Align node anchor to guide anchor
+
     /// Aligns this node to `guide`, based on the specified `nodeAnchor` and `guideAnchor`.
     ///
     /// - Parameters:
@@ -219,7 +227,7 @@ public extension SKNode {
     ///         position.
     ///     - guide: The target node. If nil, defaults to this node's parent.
     ///     - offsets: Offsets to apply to the position.
-    ///     - nodeFrameMode: Frame mode of `node`.
+    ///     - nodeFrameMode: Frame mode of this node.
     ///     - guideFrameMode: Frame mode of `guide`.
     func align(
         _ nodeAnchor: HRT2DPositionAnchor? = nil,
@@ -254,4 +262,37 @@ public extension SKNode {
         if let position = position { self.position = position }
     }
 
+    // MARK: - Align node anchor to view anchor
+
+    /// Aligns this node's `nodeAnchor` to the view's `viewAnchor` in scene-scale.
+    ///
+    /// - Parameters:
+    ///   - nodeAnchor: The anchor on `node` to align with. If nil, uses SKNode's inherent
+    ///       `anchorPoint`.
+    ///   - viewAnchor: The view anchor to align to.
+    ///   - offsets: Offsets to apply to the position.
+    ///   - nodeFrameMode: Frame mode of this node.
+    ///   - viewGuideMode: The view guide's mode.
+    func viewAlign(
+        _ nodeAnchor: HRT2DPositionAnchor? = nil,
+        to viewAnchor: HRT2DPositionAnchor,
+        offsets: CGPoint = .zero,
+        nodeFrameMode: HRT2DFrameMode = .accumulated,
+        viewGuideMode: HRT2DViewGuideMode = .full
+    ) {
+        guard let viewGuide = viewGuide(viewGuideMode) else { return }
+
+        // Find the guide's minimum point (i.e. the bottom-leftmost point) in the node's parent's
+        // coordinate space.
+        let viewGuideMin = CGPoint(x: viewGuide.minX, y: viewGuide.minY)
+
+        // Find the position of the view anchor.
+        let viewAnchorUnitPoint = viewAnchor.unitPoint
+        let viewAnchorPosition = CGPoint(
+            x: viewGuideMin.x + (viewGuide.width * viewAnchorUnitPoint.x),
+            y: viewGuideMin.y + (viewGuide.height * viewAnchorUnitPoint.y)
+        )
+
+        align(nodeAnchor, to: viewAnchorPosition, offsets: offsets, nodeFrameMode: nodeFrameMode)
+    }
 }

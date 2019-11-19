@@ -16,11 +16,17 @@ public struct HRT2DSceneInfoDraft: Decodable {
     /// If true, shows a loading progress scene if needed.
     var showsLoading: Bool?
 
+    /// If true, shows a HUD overlay.
+    var showsHUD: Bool?
+
     /// If true, this scene is not automatically released from memory.
     var isLongLived: Bool?
 
     /// If true, this scene contains elements that generate haptic feedback.
     var isHaptic: Bool?
+
+    /// Describes whether this scene is primarily light- or dark-mode.
+    var themeMode: String?
 
     /// List of the next scenes in the game's narrative.
     var nextSceneKeys: [String]?
@@ -30,8 +36,10 @@ public struct HRT2DSceneInfoDraft: Decodable {
         case fileName
         case preloads
         case showsLoading
+        case showsHUD
         case isLongLived
         case isHaptic
+        case themeMode
         case nextSceneKeys = "next"
     }
 

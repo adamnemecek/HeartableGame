@@ -9,21 +9,25 @@ final class SKNode_PositionTests: XCTestCase {
 
     // MARK: - Prep
 
+    let viewSize = CGSize(width: 250, height: 500)
     let sceneSize = CGSize(width: 1000, height: 1500)
     let nodeSize = CGSize(width: 100, height: 100)
 
-    @HRTLate var scene: SKScene
+    @HRTLate var view: SKView
+    @HRTLate var scene: HRT2DScene
     @HRTLate var node0: SKSpriteNode
     @HRTLate var node1: SKSpriteNode
     @HRTLate var node2: SKSpriteNode
     @HRTLate var node3: SKSpriteNode
 
     override func setUp() {
-        scene = SKScene(size: sceneSize)
+        view = SKView(frame: CGRect(origin: .zero, size: viewSize))
+        scene = HRT2DScene(size: sceneSize)
         node0 = SKSpriteNode(color: .red, size: nodeSize)
         node0.anchorPoint = HRT2DPositionAnchor.center.unitPoint
         node0.position = CGPoint(x: 25, y: 175)
         scene.addChild(node0)
+        view.presentScene(scene)
 
         node1 = SKSpriteNode(color: .cyan, size: nodeSize)
         node1.anchorPoint = HRT2DPositionAnchor.center.unitPoint
@@ -223,6 +227,22 @@ final class SKNode_PositionTests: XCTestCase {
         XCTAssertEqual(node2.position, topRight + CGPoint(x: -25, y: -175))
         node1.align(to: .topRight, of: node2)
         XCTAssertEqual(node1.position, topRight + anchorOffset)
+    }
+
+    // MARK: View alignment
+
+    func testViewAlignment() {
+        let viewGuide = node0.viewGuide(.full)!
+        let topRight = CGPoint(x: viewGuide.maxX, y: viewGuide.maxY)
+        let bottomLeft = CGPoint(x: viewGuide.minX, y: viewGuide.minY)
+
+        node0.viewAlign(to: .topRight)
+        XCTAssertEqual(node0.position.x, topRight.x, accuracy: 0.1)
+        XCTAssertEqual(node0.position.y, topRight.y, accuracy: 0.1)
+
+        node0.viewAlign(.bottomLeft, to: .bottomLeft)
+        XCTAssertEqual(node0.position.x, bottomLeft.x + 50, accuracy: 0.1)
+        XCTAssertEqual(node0.position.y, bottomLeft.y + 50, accuracy: 0.1)
     }
 
 }

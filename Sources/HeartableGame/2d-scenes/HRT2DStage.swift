@@ -107,14 +107,14 @@ final public class HRT2DStage {
         nextScenes.forEach { preloadScene($0) }
     }
 
-    public func preloadScene(_ sceneInfo: HRT2DSceneInfo, completion: HRTSimpleResultBlock? = nil) {
+    public func preloadScene(_ sceneInfo: HRT2DSceneInfo) {
         guard let loader = sceneLoaders[sceneInfo] else {
             assertionFailure("not a staged scene: \(sceneInfo)")
             return
         }
 
         guard sceneInfo.preloads else { return }
-        enqueueLoadingTask(loader, qualityOfService: .utility, completion: completion)
+        enqueueLoadingTask(loader, qualityOfService: .utility)
     }
 
     // MARK: Load and visit scenes
@@ -250,22 +250,16 @@ final public class HRT2DStage {
     func enqueueLoadingTask(
         _ loader: HRT2DSceneLoader,
         progress: Progress? = nil,
-        qualityOfService: QualityOfService? = nil,
-        completion: HRTSimpleResultBlock? = nil
+        qualityOfService: QualityOfService? = nil
     ) {
-        let operation = HRTBlockOperation { completion in
-            if let loaderProgress = loader.load(completion: { _ in completion() }) {
-                progress?.addChild(loaderProgress, withPendingUnitCount: 1)
+        if let loadTask = loader.loadTask() {
+            let (operation, loaderProgress) = loadTask
+            progress?.addChild(loaderProgress, withPendingUnitCount: 1)
+            if let operation = operation {
+                operation.qualityOfService = qualityOfService ?? operation.qualityOfService
+                loadQueue.addOperation(operation)
             }
         }
-        if let qualityOfService = qualityOfService {
-            operation.qualityOfService = qualityOfService
-        }
-        operation.completionBlock = {
-            DispatchQueue.main.async { completion?(operation.errors.isEmpty ? .success : .failure) }
-        }
-
-        loadQueue.addOperation(operation)
     }
 
     func enqueueUnloadingTask(for sceneInfo: HRT2DSceneInfo) {

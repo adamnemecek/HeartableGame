@@ -35,9 +35,9 @@ open class HRT2DProgressEntity: HRTGameEntity, HRT2DRenderable {
 
     open internal(set) var insets: HRTInsets
 
-    open var fullFillWidth: CGFloat { fullSize.width - insets.left - insets.right }
+    open var fullFillWidth: CGFloat { max(fullSize.width - insets.left - insets.right, 0) }
 
-    open var fullFillHeight: CGFloat { fullSize.height - insets.top - insets.bottom }
+    open var fullFillHeight: CGFloat { max(fullSize.height - insets.top - insets.bottom, 0) }
 
     // MARK: Config
 
@@ -96,14 +96,14 @@ open class HRT2DProgressEntity: HRTGameEntity, HRT2DRenderable {
     // MARK: - Utils
 
     open func setFill(_ fractionCompleted: Double) {
-        fillNode.size.width = getFillWidth(fractionCompleted)
+        fillNode.run(.resize(toWidth: getFillWidth(fractionCompleted), duration: 0))
     }
 
     open func getFillWidth(_ fractionCompleted: Double) -> CGFloat {
         // Cache computed width property.
         let fullFillWidth = self.fullFillWidth
         let width = CGFloat(fractionCompleted) * fullFillWidth
-        return min(max(width, minFillWidth), fullFillWidth)
+        return max(width, minFillWidth)
     }
 
     open func setFillNodePosition() {
@@ -136,7 +136,7 @@ extension HRT2DProgressEntity: HRT2DProgressRepresentable {
             let oldWidth = fillNode.frame.width
             let newWidth = getFillWidth(fractionCompleted)
             let dw = abs(newWidth - oldWidth)
-            let dwFraction = dw / fullSize.width
+            let dwFraction = fullSize.width == 0 ? 0 : dw / fullSize.width
             let duration = Double(dwFraction) * totalDuration
 
             let animation = SKAction.resize(toWidth: newWidth, duration: duration)

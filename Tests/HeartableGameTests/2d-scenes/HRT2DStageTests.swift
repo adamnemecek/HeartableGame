@@ -188,8 +188,10 @@ final class HRT2DStageTests: XCTestCase {
             sceneType: sceneType,
             preloads: true,
             showsLoading: true,
+            showsHUD: true,
             isLongLived: false,
-            isHaptic: false
+            isHaptic: false,
+            themeMode: .light
         )
     }
 

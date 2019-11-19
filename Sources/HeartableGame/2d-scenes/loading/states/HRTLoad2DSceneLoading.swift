@@ -67,33 +67,33 @@ public class HRTLoad2DSceneLoading: HRTLoad2DSceneState {
 
         // Set up operation to load assets (including scene assets).
         let loadSceneAssetsOperation = HRTBlockOperation({ completion in
-            let assetsLoadingProgress = self.assetsLoader.load {
-                if $0 == .failure {
-                    DispatchQueue.main.async { self.cancel() }
+            DispatchQueue.main.async {
+                let assetsLoadingProgress = self.assetsLoader.load { result in
+                    DispatchQueue.main.async {
+                        if result == .failure { self.cancel() }
+                        completion()
+                    }
                 }
-                completion()
+                progress.addChild(assetsLoadingProgress, withPendingUnitCount: assetTypesCount)
             }
-            progress.addChild(assetsLoadingProgress, withPendingUnitCount: assetTypesCount)
         })
 
         // Set up operation for scene initialization.
         let loadSceneOperation = HRTLoad2DSceneOperation(loader.info)
         loadSceneOperation.addSubscriber(HRTBlockSubscriber { operation, errors in
-            if !self.loader.isCancelled,
-                !operation.isCancelled,
-                errors.isEmpty,
-                let operation = operation as? HRTLoad2DSceneOperation,
-                let scene = operation.scene
-            {
-                DispatchQueue.main.async {
+            DispatchQueue.main.async {
+                if !self.loader.isCancelled,
+                    !operation.isCancelled,
+                    errors.isEmpty,
+                    let operation = operation as? HRTLoad2DSceneOperation,
+                    let scene = operation.scene
+                {
                     self.loader.scene = scene
                     let didEnterState = self.loader.stateMachine.enter(HRTLoad2DSceneFinished.self)
                     assert(didEnterState)
-                }
-            } else {
-                // If the assets-loading operation had failures, this operation would've been
-                // cancelled. This is considered a failure in loading.
-                DispatchQueue.main.async {
+                } else {
+                    // If the assets-loading operation had failures, this operation would've been
+                    // cancelled. This is considered a failure in loading.
                     self.loader.cleanUp()
                     let didEnterState = self.loader.stateMachine.enter(HRTLoad2DSceneReady.self)
                     assert(didEnterState)

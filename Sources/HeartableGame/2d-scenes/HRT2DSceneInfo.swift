@@ -2,6 +2,7 @@
 
 import CoreGraphics
 import Foundation
+import Heartable
 
 /// The metadata of an `HRT2DScene`.
 public struct HRT2DSceneInfo {
@@ -23,11 +24,17 @@ public struct HRT2DSceneInfo {
     /// If true, shows a loading progress scene if needed.
     public let showsLoading: Bool
 
+    /// If true, shows a HUD overlay.
+    public let showsHUD: Bool
+
     /// If true, this scene is not automatically released from memory.
     public let isLongLived: Bool
 
     /// If true, this scene contains elements that generate haptic feedback.
     public let isHaptic: Bool
+
+    /// Describes whether this scene is primarily light- or dark-mode.
+    public let themeMode: HRTThemeMode
 
 }
 
