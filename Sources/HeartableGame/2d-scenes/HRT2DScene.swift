@@ -70,6 +70,8 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
         HRT2DSceneClosed(self)
     ])
 
+    open var gameIsPaused = false
+
     open var exitCompletion: HRTBlock?
 
     open var lastUpdateTime: TimeInterval = 0
@@ -124,6 +126,8 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
     override open func update(_ currentTime: TimeInterval) {
         let deltaTime = lastUpdateTime <= 0 ? 0 : currentTime - lastUpdateTime
         lastUpdateTime = currentTime
+
+        guard !gameIsPaused else { return }
 
         // Update component systems.
         componentSystems.values.forEach { $0.update(deltaTime: deltaTime) }
@@ -226,21 +230,15 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
         _ inputSource: HRT2DGameInputSource,
         didPickDirection direction: HRT2DGameInputDirection
     ) {}
-
     open func inputSourceDidSelect(_ inputSource: HRT2DGameInputSource) {}
-
     open func inputSourceDidTogglePause(_ inputSource: HRT2DGameInputSource) {}
 
     #if DEBUG
 
     open func inputSourceDidToggleDebugInfo(_ inputSource: HRT2DGameInputSource) {}
-
     open func inputSourceDidGoBack(_ inputSource: HRT2DGameInputSource) {}
-
     open func inputSourceDidSkip(_ inputSource: HRT2DGameInputSource) {}
-
     open func inputSourceDidTriggerWin(_ inputSource: HRT2DGameInputSource) {}
-
     open func inputSourceDidTriggerLoss(_ inputSource: HRT2DGameInputSource) {}
 
     #endif

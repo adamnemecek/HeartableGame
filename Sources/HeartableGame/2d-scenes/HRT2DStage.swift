@@ -9,7 +9,7 @@ import UIKit
 #endif
 
 /// Coordinator of scene loading and presentation.
-final public class HRT2DStage {
+open class HRT2DStage {
 
     // MARK: - Props
 
@@ -21,20 +21,6 @@ final public class HRT2DStage {
 
     /// Player control input.
     public let input: HRT2DGameInput
-
-    #if DEBUG
-    /// Debug UI.
-    public var debugInputSource: HRT2DGameInputSource? {
-        didSet {
-            if let debugInputSource = debugInputSource {
-                input.addSecondarySource(debugInputSource)
-            }
-            if let oldDebugInputSource = oldValue {
-                input.removeSecondarySource(oldDebugInputSource)
-            }
-        }
-    }
-    #endif
 
     // MARK: Loading
 
