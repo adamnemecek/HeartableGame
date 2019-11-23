@@ -214,6 +214,8 @@ open class HRT2DScene: SKScene, HRTEponymous, HRTGameplayBased, HRT2DAssetsLoadi
         case is HRT2DSceneOpening, is HRT2DSceneOpened:
             exitCompletion = completion
             curtainStateMachine.enter(HRT2DSceneClosing.self)
+        case is HRT2DSceneClosing:
+            exitCompletion = completion
         default: completion?()
         }
     }

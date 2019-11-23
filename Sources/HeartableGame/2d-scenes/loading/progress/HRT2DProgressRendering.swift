@@ -54,7 +54,9 @@ public extension HRT2DProgressRendering {
         )
     }
 
-    func reportFailure() {}
+    func reportFailure() {
+        // TODO: Implement failure reporting.
+    }
 
 }
 

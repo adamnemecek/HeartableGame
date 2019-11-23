@@ -222,6 +222,7 @@ open class HRT2DStage {
             self.input.delegate = scene
             self.view.presentScene(scene, transition: transition)
         }
+
         if let prevScene = view.scene as? HRT2DScene {
             DispatchQueue.main.async {
                 prevScene.prepareToMove(from: self.view) { present() }

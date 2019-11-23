@@ -20,7 +20,7 @@ open class HRT2DButton: SKSpriteNode {
     open var responder: HRT2DButtonResponder? { scene as? HRT2DButtonResponder }
 
     #if !os(macOS)
-    open var touchDelegate: HRT2DButtonTouchDelegate?
+    open weak var touchDelegate: HRT2DButtonTouchDelegate?
     #endif
 
     // Texture
